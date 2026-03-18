@@ -3,8 +3,8 @@ import { animate, createTimeline, splitText, stagger, utils } from "animejs";
 export function initAbout() {
   const classes = [".about_p", ".about_work", ".about_text", ".about_social"];
   const ab_tl = createTimeline();
-  let spduration = 500,
-    spstagger = 25;
+  let spduration = 1000,
+    spstagger = 10;
   let aboutPDuration = 0;
 
   classes.forEach((cls) => {
