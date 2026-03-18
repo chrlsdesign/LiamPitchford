@@ -7,16 +7,18 @@ export function initAbout() {
   classes.forEach((cls) => {
     utils.$(cls).forEach((el) => {
       const split = splitText(el, { words: { wrap: "clip" } });
+      const isDelayed = cls === ".about_text" || cls === ".about_social";
+
       ab_tl
         .add(
           split.words,
           {
             y: ["100%", "0%"],
-            duration: 750,
+            duration: 500,
             ease: "out(3)",
-            delay: stagger(10),
+            delay: stagger(25),
           },
-          0,
+          isDelayed ? 400 : 0,
         )
         .init();
     });
