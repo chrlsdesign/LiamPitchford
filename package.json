@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "serve",
     "dev": "esbuild js/index.js --bundle --outfile=dist/index.js --watch",
-    "build-min": "node builder.js"
+    "build-min": "node builder.js",
+    "pushGit": "node builder.js && git add . && git commit -m 'update' && git push"
   },
   "author": "",
   "license": "ISC",

@@ -89,4 +89,4 @@ animejs/dist/modules/index.js:
    * @copyright 2026 - Julian Garnier
    *)
 */
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=index.txt.map
