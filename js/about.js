@@ -1,54 +1,22 @@
 import { animate, createTimeline, splitText, stagger } from "animejs";
 
 export function initAbout() {
-  const { cp } = splitText(".about_p", { chars: { wrap: "clip" } });
-  const { cw } = splitText(".about_work", { chars: { wrap: "clip" } });
-  const { ct } = splitText(".about_text", { chars: { wrap: "clip" } });
-  const { cs } = splitText(".about_social", { chars: { wrap: "clip" } });
-
+  const classes = [".about_p", ".about_work", ".about_text", ".about_social"];
   const ab_tl = createTimeline();
 
-  ab_tl
-    .add(
-      cp,
+  classes.forEach((cls) => {
+    const split = splitText(cls, { words: { wrap: "clip" } });
+    ab_tl.add(
+      split.words,
       {
         y: ["100%", "0%"],
         duration: 750,
         ease: "out(3)",
-        delay: stagger(50),
-      },
-      0,
-    )
-    .add(
-      cw,
-      {
-        y: ["100%", "0%"],
-        duration: 750,
-        ease: "out(3)",
-        delay: stagger(50),
-      },
-      0,
-    )
-    .add(
-      ct,
-      {
-        y: ["100%", "0%"],
-        duration: 750,
-        ease: "out(3)",
-        delay: stagger(50),
-      },
-      0,
-    )
-    .add(
-      cs,
-      {
-        y: ["100%", "0%"],
-        duration: 750,
-        ease: "out(3)",
-        delay: stagger(50),
+        delay: stagger(10),
       },
       0,
     );
+  });
 
   const section = document.querySelector(".section.about");
   const grads = document.querySelectorAll(".about_bg-grad");
