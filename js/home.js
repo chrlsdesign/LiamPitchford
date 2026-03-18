@@ -60,7 +60,7 @@ export function initHome() {
       scale: 1,
     })
     .add(".intro", { backgroundColor: "rgba(255,255,255,0)", duration: 250 })
-    .add(".home-item", { clipPath: "inset(0 0 0 0)" });
+    .add(".home_item", { clipPath: "inset(0 0 0 0)" });
   /*.then(()=>{
   	layout.update(({ root }) => {
       const video = root.querySelector('.intro_holder video');
