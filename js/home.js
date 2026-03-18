@@ -66,7 +66,7 @@ export function initHome() {
         clipPath: ["inset(0% 100% 100% 0%)", "inset(0% 0% 0% 0%)"],
         duration: 750,
       },
-      "cliptogether",
+      "-=0",
     )
     .add(
       ".home_item:nth-of-type(2n)",
@@ -74,7 +74,7 @@ export function initHome() {
         clipPath: ["inset(0% 0% 100% 100%)", "inset(0% 0% 0% 0%)"],
         duration: 750,
       },
-      "cliptogether",
+      "-=750",
     );
   /*.then(()=>{
   	layout.update(({ root }) => {

@@ -8,17 +8,18 @@ export function initAbout() {
 
   const ab_tl = createTimeline();
 
+  animate(
+    chars_p,
+    {
+      y: ["100%", "0%"],
+      duration: 750,
+      ease: "out(3)",
+      delay: stagger(50),
+    },
+    0,
+  );
+
   ab_tl
-    .add(
-      chars_p,
-      {
-        y: ["100%", "0%"],
-        duration: 750,
-        ease: "out(3)",
-        delay: stagger(50),
-      },
-      0,
-    )
     .add(
       chars_w,
       {
