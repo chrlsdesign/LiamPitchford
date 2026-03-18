@@ -1,27 +1,16 @@
 import { animate, createTimeline, splitText, stagger } from "animejs";
 
 export function initAbout() {
-  const { chars_p } = splitText(".about_p", { chars: { wrap: "clip" } });
-  const { chars_w } = splitText(".about_work", { chars: { wrap: "clip" } });
-  const { chars_t } = splitText(".about_text", { chars: { wrap: "clip" } });
-  const { chars_s } = splitText(".about_social", { chars: { wrap: "clip" } });
+  const { cp } = splitText(".about_p", { chars: { wrap: "clip" } });
+  const { cw } = splitText(".about_work", { chars: { wrap: "clip" } });
+  const { ct } = splitText(".about_text", { chars: { wrap: "clip" } });
+  const { cs } = splitText(".about_social", { chars: { wrap: "clip" } });
 
   const ab_tl = createTimeline();
 
-  animate(
-    chars_p,
-    {
-      y: ["100%", "0%"],
-      duration: 750,
-      ease: "out(3)",
-      delay: stagger(50),
-    },
-    0,
-  );
-
   ab_tl
     .add(
-      chars_w,
+      cp,
       {
         y: ["100%", "0%"],
         duration: 750,
@@ -31,7 +20,7 @@ export function initAbout() {
       0,
     )
     .add(
-      chars_t,
+      cw,
       {
         y: ["100%", "0%"],
         duration: 750,
@@ -41,7 +30,17 @@ export function initAbout() {
       0,
     )
     .add(
-      chars_s,
+      ct,
+      {
+        y: ["100%", "0%"],
+        duration: 750,
+        ease: "out(3)",
+        delay: stagger(50),
+      },
+      0,
+    )
+    .add(
+      cs,
       {
         y: ["100%", "0%"],
         duration: 750,
