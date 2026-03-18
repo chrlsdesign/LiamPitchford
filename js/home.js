@@ -63,16 +63,16 @@ export function initHome() {
     .add(
       ".home_item:nth-of-type(2n-1)",
       {
-        clipPath: ["inset(0px 100% 100% 0px)", "inset(0px 0% 0% 0px)"],
-        delay: stagger(50),
+        clipPath: ["inset(0% 100% 100% 0%)", "inset(0% 0% 0% 0%)"],
+        duration: 750,
       },
       "cliptogether",
     )
     .add(
       ".home_item:nth-of-type(2n)",
       {
-        clipPath: ["inset(0px 0% 100% 100%)", "inset(0px 0% 0% 0px)"],
-        delay: stagger(50),
+        clipPath: ["inset(0% 0% 100% 100%)", "inset(0% 0% 0% 0%)"],
+        duration: 750,
       },
       "cliptogether",
     );
