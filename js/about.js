@@ -1,14 +1,55 @@
-import {
-  animate,
-  createTimeline,
-  splitText,
-  stagger,
-  utils,
-  cubicBezier,
-  createLayout,
-} from "animejs";
+import { animate, createTimeline, splitText, stagger } from "animejs";
 
 export function initAbout() {
+  const { chars_p } = splitText(".about_p", { chars: { wrap: "clip" } });
+  const { chars_w } = splitText(".about_work", { chars: { wrap: "clip" } });
+  const { chars_t } = splitText(".about_text", { chars: { wrap: "clip" } });
+  const { chars_s } = splitText(".about_social", { chars: { wrap: "clip" } });
+
+  const ab_tl = createTimeline();
+
+  ab_tl
+    .add(
+      chars_p,
+      {
+        y: ["100%", "0%"],
+        duration: 750,
+        ease: "out(3)",
+        delay: stagger(50),
+      },
+      0,
+    )
+    .add(
+      chars_w,
+      {
+        y: ["100%", "0%"],
+        duration: 750,
+        ease: "out(3)",
+        delay: stagger(50),
+      },
+      0,
+    )
+    .add(
+      chars_t,
+      {
+        y: ["100%", "0%"],
+        duration: 750,
+        ease: "out(3)",
+        delay: stagger(50),
+      },
+      0,
+    )
+    .add(
+      chars_s,
+      {
+        y: ["100%", "0%"],
+        duration: 750,
+        ease: "out(3)",
+        delay: stagger(50),
+      },
+      0,
+    );
+
   const section = document.querySelector(".section.about");
   const grads = document.querySelectorAll(".about_bg-grad");
   const total = grads.length;

@@ -2,6 +2,7 @@ import { Core, Transition, Renderer } from "@unseenco/taxi";
 import { initHome } from "./js/home.js";
 import { initAbout } from "./js/about.js";
 import { initWork } from "./js/work.js";
+import { initWorkContent } from "./js/work-content.js";
 
 console.log("Getting in App JS");
 

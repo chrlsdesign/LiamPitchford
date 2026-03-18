@@ -3,9 +3,7 @@ import {
   createTimeline,
   splitText,
   stagger,
-  utils,
   cubicBezier,
-  createLayout,
 } from "animejs";
 
 export function initWork() {
