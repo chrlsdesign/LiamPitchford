@@ -3,22 +3,33 @@ import { animate, createTimeline, splitText, stagger, utils } from "animejs";
 export function initAbout() {
   const classes = [".about_p", ".about_work", ".about_text", ".about_social"];
   const ab_tl = createTimeline();
+  let spduration = 500,
+    spstagger = 25;
+  let aboutPDuration = 0;
 
   classes.forEach((cls) => {
     utils.$(cls).forEach((el) => {
       const split = splitText(el, { words: { wrap: "clip" } });
-      const isDelayed = cls === ".about_text" || cls === ".about_social";
+      const wordCount = split.words.length;
+      const totalDuration = spduration + spstagger * wordCount; // duration + stagger * words
+
+      if (cls === ".about_p") {
+        aboutPDuration = totalDuration;
+      }
+
+      const offset =
+        cls === ".about_text" || cls === ".about_social" ? aboutPDuration : 0;
 
       ab_tl
         .add(
           split.words,
           {
             y: ["100%", "0%"],
-            duration: 500,
+            duration: spduration,
             ease: "out(3)",
-            delay: stagger(25),
+            delay: stagger(spstagger),
           },
-          isDelayed ? 400 : 0,
+          offset,
         )
         .init();
     });
