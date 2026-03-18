@@ -1,23 +1,25 @@
-import { animate, createTimeline, splitText, stagger } from "animejs";
+import { animate, createTimeline, splitText, stagger, utils } from "animejs";
 
 export function initAbout() {
   const classes = [".about_p", ".about_work", ".about_text", ".about_social"];
   const ab_tl = createTimeline();
 
   classes.forEach((cls) => {
-    const split = splitText(cls, { words: { wrap: "clip" } });
-    ab_tl
-      .add(
-        split.words,
-        {
-          y: ["100%", "0%"],
-          duration: 750,
-          ease: "out(3)",
-          delay: stagger(10),
-        },
-        0,
-      )
-      .init();
+    utils.$(cls).forEach((el) => {
+      const split = splitText(el, { words: { wrap: "clip" } });
+      ab_tl
+        .add(
+          split.words,
+          {
+            y: ["100%", "0%"],
+            duration: 750,
+            ease: "out(3)",
+            delay: stagger(10),
+          },
+          0,
+        )
+        .init();
+    });
   });
 
   const section = document.querySelector(".section.about");
