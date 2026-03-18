@@ -6,16 +6,18 @@ export function initAbout() {
 
   classes.forEach((cls) => {
     const split = splitText(cls, { words: { wrap: "clip" } });
-    ab_tl.add(
-      split.words,
-      {
-        y: ["100%", "0%"],
-        duration: 750,
-        ease: "out(3)",
-        delay: stagger(10),
-      },
-      0,
-    );
+    ab_tl
+      .add(
+        split.words,
+        {
+          y: ["100%", "0%"],
+          duration: 750,
+          ease: "out(3)",
+          delay: stagger(10),
+        },
+        0,
+      )
+      .init();
   });
 
   const section = document.querySelector(".section.about");
