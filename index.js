@@ -51,18 +51,14 @@ class DefaultRenderer extends Renderer {
   }
 
   onEnter() {
-    const path = window.location.pathname;
+    this.content.querySelectorAll("video[autoplay]").forEach((video) => {
+      video.play().catch(() => {}); // catch silences the promise rejection if browser blocks it
+    });
 
+    const path = window.location.pathname;
     if (path === "/") initHome();
     if (path.includes("about")) initAbout();
-    if (path.includes("work")) cleanupWork = initWork();
-  }
-
-  onLeaveCompleted() {
-    if (cleanupWork) {
-      cleanupWork();
-      cleanupWork = null;
-    }
+    if (path.includes("work")) initWork();
   }
 }
 
