@@ -77,10 +77,9 @@ export function initHome() {
     .then(() => {
       layout.update(
         ({ root }) => {
-          const video = root.querySelector(".intro_holder video");
+          const video = root.querySelector(".intro_holder");
           const firstLink = root.querySelector(".home_cms--link");
           firstLink.appendChild(video);
-          video.classList.add("active");
         },
         {
           duration: 1000,
