@@ -15,7 +15,7 @@ export function initHome() {
     .setAttribute("data-layout-id", "intro-video");
 
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
-  const layout = createLayout(".main", { children: true });
+  const layout = createLayout(".main");
   const tl = createTimeline({
     defaults: { duration: 700, ease: cubicEase },
   });
