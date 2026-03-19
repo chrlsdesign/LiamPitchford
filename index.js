@@ -52,7 +52,6 @@ class DefaultRenderer extends Renderer {
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
     window.scrollTo(0, 0);
-    lenis.scrollTo(0, { immediate: true });
 
     const path = window.location.pathname;
     if (path === "/") initHome();

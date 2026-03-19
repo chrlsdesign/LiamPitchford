@@ -13,6 +13,21 @@ import Lenis from "lenis";
 let scrollObservers = [];
 
 export function initHome() {
+  const lenis = new Lenis({
+    infinite: true,
+    smoothTouch: true,
+    syncTouch: true,
+    touchMultiplier: 1.5,
+  });
+
+  function raf(time) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+  }
+  requestAnimationFrame(raf);
+
+  lenis.scrollTo(0, { immediate: true });
+
   let introPlayed = false;
   if (introPlayed) {
     // skip intro, just init scroll reveal directly
@@ -145,19 +160,6 @@ export function initHome() {
       animate(crs, { opacity: 0, duration: 800, ease: "inOut(1.68)" });
     });
   });
-
-  const lenis = new Lenis({
-    infinite: true,
-    smoothTouch: true,
-    syncTouch: true,
-    touchMultiplier: 1.5,
-  });
-
-  function raf(time) {
-    lenis.raf(time);
-    requestAnimationFrame(raf);
-  }
-  requestAnimationFrame(raf);
 }
 
 function resetScrollReveal() {
