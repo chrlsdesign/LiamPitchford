@@ -17,6 +17,7 @@ export function initWork() {
   let activeFilter = "all";
   const controller = new AbortController();
   const { signal } = controller;
+  const workItems = document.querySelectorAll(".work_item");
 
   filters.forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -44,8 +45,7 @@ export function initWork() {
     });
   });
 
-  const workItems = document.querySelectorAll(".work_item");
-
+  //Hover Project
   workItems.forEach((item) => {
     item.querySelector(".work_title")?.classList.remove("is-active");
     const link = item.querySelector(".work_link");
