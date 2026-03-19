@@ -18,6 +18,7 @@ export function initWork() {
   const controller = new AbortController();
   const { signal } = controller;
   const workItems = document.querySelectorAll(".work_item");
+  let activeItem = null;
 
   filters.forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -60,22 +61,37 @@ export function initWork() {
       "mouseenter",
       () => {
         if (item.classList.contains("off")) return;
+        if (item === activeItem) return;
 
-        workItems.forEach((other) => {
-          const isActive = other === item;
-          other
+        // deactivate previous
+        if (activeItem) {
+          activeItem
             .querySelector(".work_title")
-            .classList.toggle("is-active", isActive);
-          const tl = createTimeline();
-          tl.add(other.querySelector(".work_link"), {
-            display: isActive ? "block" : "none",
+            ?.classList.remove("is-active");
+          animate(activeItem.querySelectorAll(".work_thumb"), {
+            opacity: 0,
+            duration: 300,
+            ease: "outQuad",
+          });
+          animate(activeItem.querySelector(".work_link"), {
+            display: "none",
             duration: 0,
-          }).add(
-            other.querySelectorAll(".work_thumb"),
-            { opacity: isActive ? 1 : 0, duration: 300, ease: "outQuad" },
-            isActive ? 0 : ">=0",
-          );
+          });
+        }
+
+        // activate current
+        item.querySelector(".work_title")?.classList.add("is-active");
+        animate(item.querySelector(".work_link"), {
+          display: "block",
+          duration: 0,
         });
+        animate(item.querySelectorAll(".work_thumb"), {
+          opacity: 1,
+          duration: 300,
+          ease: "outQuad",
+        });
+
+        activeItem = item;
       },
       { signal },
     );
