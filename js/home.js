@@ -120,11 +120,11 @@ export function initHome() {
     });
 
     link.addEventListener("mouseenter", () => {
-      crs.fadeIn(800);
+      animate(crs, { opacity: 1, duration: 800, ease: "inOut(1.68)" });
     });
 
     link.addEventListener("mouseleave", () => {
-      crs.fadeOut(800);
+      animate(crs, { opacity: 0, duration: 800, ease: "inOut(1.68)" });
     });
   });
 
