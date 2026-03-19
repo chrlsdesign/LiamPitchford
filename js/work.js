@@ -57,7 +57,7 @@ export function initWork() {
 
   workItems.forEach((item) => {
     item.addEventListener(
-      "mouseenter",
+      "mouseover",
       () => {
         if (item.classList.contains("off")) return;
         if (item === activeItem) return;
