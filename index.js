@@ -6,6 +6,8 @@ import { initWorkContent } from "./js/work-content.js";
 
 console.log("Getting in App JS");
 
+let cleanupWork = null;
+
 document.body.scrollTop = 0; // For Safari
 document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE, and Opera
 function updateTime() {

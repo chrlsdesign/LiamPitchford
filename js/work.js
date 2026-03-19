@@ -40,8 +40,11 @@ export function initWork() {
             activeFilter === "all" ||
             item.getAttribute("filter-lp-field") === activeFilter;
           const workItem = item.closest(".work_item");
+          if (!workItem) return;
           workItem.classList.toggle("off", !match);
-          workItem.querySelector(".work_title").classList.toggle("off", !match);
+          workItem
+            .querySelector(".work_title")
+            ?.classList.toggle("off", !match);
         });
       },
       { signal },
@@ -57,9 +60,12 @@ export function initWork() {
           const isActive = other === item;
           other
             .querySelector(".work_title")
-            .classList.toggle("is-active", isActive);
+            ?.classList.toggle("is-active", isActive);
           const tl = createTimeline();
-          tl.add(other.querySelector(".work_link"), {
+          const link = other.querySelector(".work_link");
+          if (!link) return;
+
+          tl.add(link, {
             display: isActive ? "block" : "none",
             duration: 0,
           }).add(

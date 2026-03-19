@@ -15,7 +15,7 @@ export function initHome() {
     .setAttribute("data-layout-id", "intro-video");
 
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
-  const layout = createLayout("body", { children: true });
+  const layout = createLayout("body");
   const tl = createTimeline({
     defaults: { duration: 700, ease: cubicEase },
   });
@@ -74,25 +74,26 @@ export function initHome() {
       },
       "-=750",
     )
-    .then(() => {
-      layout.update(
-        ({ root }) => {
-          const video = root.querySelector(".intro_holder");
-          const firstLink = root.querySelector(".home_cms--link");
-          firstLink.appendChild(video);
+    .call(() => {
+      const video = document.querySelector(".intro_holder video");
+      const firstLink = document.querySelector(".home_cms--link");
+      if (!video || !firstLink) return;
+
+      // record positions BEFORE the DOM change
+      layout.record();
+
+      // make the DOM change
+      firstLink.prepend(video);
+      video.classList.add("active");
+
+      // now animate from recorded positions to new positions
+      layout.animate({
+        duration: 1000,
+        ease: cubicEase,
+        onComplete: () => {
+          animate(".intro", { opacity: 0, duration: 600 });
         },
-        {
-          duration: 1000,
-          ease: cubicEase,
-          onComplete: () => {
-            animate(".intro", {
-              opacity: 0,
-              duration: 600,
-              delay: 700,
-            });
-          },
-        },
-      );
+      });
     });
 
   document.querySelectorAll(".home_cms--link").forEach((link) => {
