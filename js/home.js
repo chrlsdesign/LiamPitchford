@@ -89,7 +89,7 @@ export function initHome() {
     });
 
   function initScrollReveal() {
-    const originalList = document.querySelector(".home_list:not(.clone)");
+    const originalList = document.querySelector(".home_list");
     const items = originalList.querySelectorAll(".home_item");
 
     items.forEach((item, i) => {
