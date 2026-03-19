@@ -18,10 +18,7 @@ export function initHome() {
     return;
   }
 
-  document
-    .querySelector(".intro_holder video")
-    .setAttribute("data-layout-id", "intro-video");
-
+  let scrollObservers = [];
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
   const layout = createLayout("body");
   const tl = createTimeline({
@@ -97,6 +94,7 @@ export function initHome() {
       onScroll({
         target: item,
         sync: false,
+        repeat: false,
         onEnter: () => {
           if (!introPlayed) return;
           animate(item, {
@@ -108,6 +106,8 @@ export function initHome() {
           });
         },
       });
+
+      scrollObservers.push(observer);
     });
   }
 
@@ -154,4 +154,22 @@ export function initHome() {
     requestAnimationFrame(raf);
   }
   requestAnimationFrame(raf);
+}
+
+function resetScrollReveal() {
+  // revert each observer
+  scrollObservers.forEach((observer) => observer.revert());
+  scrollObservers = [];
+
+  // reset clip-path back to hidden
+  document.querySelectorAll(".home_item").forEach((item, i) => {
+    const isOdd = i % 2 === 0;
+    item.style.clipPath = isOdd
+      ? "inset(0% 100% 100% 0%)"
+      : "inset(0% 0% 100% 100%)";
+  });
+}
+
+export function destroyHome() {
+  resetScrollReveal();
 }

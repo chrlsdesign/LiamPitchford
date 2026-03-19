@@ -60,6 +60,11 @@ class DefaultRenderer extends Renderer {
     if (path.includes("about")) initAbout();
     if (path.includes("work")) initWork();
   }
+
+  onLeaveCompleted() {
+    const path = window.location.pathname;
+    if (path === "/") destroyHome();
+  }
 }
 
 const app = new Core({
