@@ -50,10 +50,9 @@ export function initWork() {
   workItems.forEach((item) => {
     item.querySelector(".work_title")?.classList.remove("is-active");
     const link = item.querySelector(".work_link");
+    const thumbs = item.querySelectorAll(".work_thumb");
     if (link) link.style.display = "none";
-    item
-      .querySelectorAll(".work_thumb")
-      .forEach((thumb) => (thumb.style.opacity = ""));
+    thumbs.forEach((thumb) => (thumb.style.opacity = "0"));
   });
 
   workItems.forEach((item) => {
