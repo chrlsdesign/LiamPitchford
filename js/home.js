@@ -91,7 +91,7 @@ export function initHome() {
     document.querySelectorAll(".home_item").forEach((item, i) => {
       const isOdd = i % 2 === 0;
 
-      onScroll({
+      const observer = onScroll({
         target: item,
         sync: false,
         repeat: false,
