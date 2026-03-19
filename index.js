@@ -4,6 +4,10 @@ import { initAbout } from "./js/about.js";
 import { initWork } from "./js/work.js";
 import { initWorkContent } from "./js/work-content.js";
 
+if ("scrollRestoration" in history) {
+  history.scrollRestoration = "manual";
+}
+
 function updateTime() {
   document.querySelector("#time").textContent = new Date().toLocaleTimeString(
     "en-GB",
