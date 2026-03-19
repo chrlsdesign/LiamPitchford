@@ -77,6 +77,7 @@ export function initWork() {
           });
           animate(activeItem.querySelector(".work_link"), {
             display: "none",
+            pointerEvents: "none",
             duration: 0,
           });
         }
@@ -85,6 +86,7 @@ export function initWork() {
         item.querySelector(".work_title")?.classList.add("is-active");
         animate(item.querySelector(".work_link"), {
           display: "block",
+          pointerEvents: "auto",
           duration: 0,
         });
         animate(item.querySelectorAll(".work_thumb"), {
