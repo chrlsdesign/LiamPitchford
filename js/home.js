@@ -15,7 +15,7 @@ export function initHome() {
     .setAttribute("data-layout-id", "intro-video");
 
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
-  const layout = createLayout(".main");
+  const layout = createLayout("body", { children: true });
   const tl = createTimeline({
     defaults: { duration: 700, ease: cubicEase },
   });
@@ -79,7 +79,6 @@ export function initHome() {
         ({ root }) => {
           const video = root.querySelector(".intro_holder video");
           const firstLink = root.querySelector(".home_cms--link");
-          if (!video || !firstLink) return;
           firstLink.appendChild(video);
         },
         {
