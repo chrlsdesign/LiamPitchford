@@ -75,24 +75,27 @@ export function initHome() {
         duration: 750,
       },
       "-=750",
-    );
-  /*.then(()=>{
-  	layout.update(({ root }) => {
-      const video = root.querySelector('.intro_holder video');
-      const firstLink = root.querySelector('.home_cms--link');
-      firstLink.innerHTML='';
-      firstLink.appendChild(video);
-    },{
-    	duration: 1000,
-      ease: cubicEase,
-      onComplete: () => {
-        animate('.intro', {
-          opacity: 0,
-          duration: 600
-        });
-      }
+    )
+    .then(() => {
+      layout.update(
+        ({ root }) => {
+          const video = root.querySelector(".intro_holder video");
+          const firstLink = root.querySelector(".home_cms--link");
+          firstLink.innerHTML = "";
+          firstLink.appendChild(video);
+        },
+        {
+          duration: 1000,
+          ease: cubicEase,
+          onComplete: () => {
+            animate(".intro", {
+              opacity: 0,
+              duration: 600,
+            });
+          },
+        },
+      );
     });
-  })*/
 
   document.querySelectorAll(".home_cms--link").forEach((link) => {
     const crs = link.querySelector(".home_flw--crs");
@@ -117,11 +120,11 @@ export function initHome() {
     });
 
     link.addEventListener("mouseenter", () => {
-      animate(crs, { opacity: 1, ease: "inOut(1.68)" });
+      crs.fadeIn(800);
     });
 
     link.addEventListener("mouseleave", () => {
-      animate(crs, { opacity: 0, ease: "inOut(1.68)" });
+      crs.fadeOut(800);
     });
   });
 

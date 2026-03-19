@@ -53,7 +53,14 @@ class DefaultRenderer extends Renderer {
 
     if (path === "/") initHome();
     if (path.includes("about")) initAbout();
-    if (path.includes("work")) initWork();
+    if (path.includes("work")) cleanupWork = initWork();
+  }
+
+  onLeaveCompleted() {
+    if (cleanupWork) {
+      cleanupWork();
+      cleanupWork = null;
+    }
   }
 }
 

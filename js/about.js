@@ -35,7 +35,7 @@ export function initAbout() {
     });
   });
 
-  const section = document.querySelector(".section.about");
+  /* const section = document.querySelector(".section.about");
   const grads = document.querySelectorAll(".about_bg-grad");
   const total = grads.length;
   const maxOffset = 10;
@@ -59,5 +59,47 @@ export function initAbout() {
 
       grad.style.transform = `translateX(${wave}%)`;
     });
+  }); */
+
+  const wrapper = document.querySelector(".section.about");
+  const blob = document.querySelector(".i-blob");
+
+  const animatable = createAnimatable(blob, {
+    x: { duration: 800, ease: "out(3)" },
+    y: { duration: 800, ease: "out(3)" },
+    rotate: { duration: 600, ease: "linear", unit: "rad" },
+  });
+
+  let angle = 0;
+  let lastAngle = 0;
+  const PI = Math.PI;
+  const strength = 0.5;
+
+  let bounds = wrapper.getBoundingClientRect();
+  window.addEventListener(
+    "resize",
+    () => (bounds = wrapper.getBoundingClientRect()),
+  );
+
+  wrapper.addEventListener("mousemove", (e) => {
+    const { width, height, left, top } = bounds;
+
+    // movement — relative to wrapper
+    const x = (e.clientX - left - width / 2) * strength;
+    const y = (e.clientY - top - height / 2) * strength;
+
+    animatable.x(x);
+    animatable.y(y);
+
+    // rotation from center
+    const currentAngle = Math.atan2(
+      e.clientY - top - height / 2,
+      e.clientX - left - width / 2,
+    );
+    const diff = currentAngle - lastAngle;
+    angle += diff > PI ? diff - 2 * PI : diff < -PI ? diff + 2 * PI : diff;
+    lastAngle = currentAngle;
+
+    animatable.rotate(angle * strength);
   });
 }
