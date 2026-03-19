@@ -88,6 +88,7 @@ export function initHome() {
             animate(".intro", {
               opacity: 0,
               duration: 600,
+              delay: 700,
             });
           },
         },
