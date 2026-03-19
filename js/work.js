@@ -15,6 +15,8 @@ export function initWork() {
   );
 
   let activeFilter = "all";
+  const controller = new AbortController();
+  const { signal } = controller;
 
   filters.forEach((btn) => {
     btn.addEventListener("click", () => {
