@@ -4,12 +4,6 @@ import { initAbout } from "./js/about.js";
 import { initWork } from "./js/work.js";
 import { initWorkContent } from "./js/work-content.js";
 
-console.log("Getting in App JS");
-
-let cleanupWork = null;
-
-document.body.scrollTop = 0; // For Safari
-document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE, and Opera
 function updateTime() {
   document.querySelector("#time").textContent = new Date().toLocaleTimeString(
     "en-GB",
@@ -54,6 +48,11 @@ class DefaultRenderer extends Renderer {
     this.content.querySelectorAll("video[autoplay]").forEach((video) => {
       video.play().catch(() => {}); // catch silences the promise rejection if browser blocks it
     });
+
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+    window.scrollTo(0, 0);
+    lenis.scrollTo(0, { immediate: true });
 
     const path = window.location.pathname;
     if (path === "/") initHome();
