@@ -89,7 +89,10 @@ export function initHome() {
     });
 
   function initScrollReveal() {
-    document.querySelectorAll(".home_item").forEach((item, i) => {
+    const originalList = document.querySelector(".home_list:not(.clone)");
+    const items = originalList.querySelectorAll(".home_item");
+
+    items.forEach((item, i) => {
       const isOdd = i % 2 === 0;
 
       const observer = onScroll({
