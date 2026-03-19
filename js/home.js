@@ -10,6 +10,8 @@ import {
 } from "animejs";
 import Lenis from "lenis";
 
+let scrollObservers = [];
+
 export function initHome() {
   let introPlayed = false;
   if (introPlayed) {
@@ -18,7 +20,6 @@ export function initHome() {
     return;
   }
 
-  let scrollObservers = [];
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
   const layout = createLayout("body");
   const tl = createTimeline({
