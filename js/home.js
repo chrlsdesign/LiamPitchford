@@ -80,6 +80,7 @@ export function initHome() {
           const video = root.querySelector(".intro_holder video");
           const firstLink = root.querySelector(".home_cms--link");
           firstLink.appendChild(video);
+          video.classList.add("active");
         },
         {
           duration: 1000,
