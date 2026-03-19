@@ -6,10 +6,18 @@ import {
   utils,
   cubicBezier,
   createLayout,
+  onScroll,
 } from "animejs";
 import Lenis from "lenis";
 
 export function initHome() {
+  let introPlayed = false;
+  if (introPlayed) {
+    // skip intro, just init scroll reveal directly
+    initScrollReveal();
+    return;
+  }
+
   document
     .querySelector(".intro_holder video")
     .setAttribute("data-layout-id", "intro-video");
@@ -58,22 +66,6 @@ export function initHome() {
       scale: 1,
     })
     .add(".intro", { backgroundColor: "rgba(255,255,255,0)", duration: 250 })
-    .add(
-      ".home_item:nth-of-type(2n-1)",
-      {
-        clipPath: ["inset(0% 100% 100% 0%)", "inset(0% 0% 0% 0%)"],
-        duration: 750,
-      },
-      "-=0",
-    )
-    .add(
-      ".home_item:nth-of-type(2n)",
-      {
-        clipPath: ["inset(0% 0% 100% 100%)", "inset(0% 0% 0% 0%)"],
-        duration: 750,
-      },
-      "-=750",
-    )
     .call(() => {
       const video = document.querySelector(".intro_holder video");
       const firstLink = document.querySelector(".home_cms--link");
@@ -92,9 +84,32 @@ export function initHome() {
         ease: cubicEase,
         onComplete: () => {
           animate(".intro", { opacity: 0, duration: 600 });
+          introPlayed = true;
+          initScrollReveal();
         },
       });
     });
+
+  function initScrollReveal() {
+    document.querySelectorAll(".home_item").forEach((item, i) => {
+      const isOdd = i % 2 === 0;
+
+      onScroll({
+        target: item,
+        sync: false,
+        onEnter: () => {
+          if (!introPlayed) return;
+          animate(item, {
+            clipPath: isOdd
+              ? ["inset(0% 100% 100% 0%)", "inset(0% 0% 0% 0%)"]
+              : ["inset(0% 0% 100% 100%)", "inset(0% 0% 0% 0%)"],
+            duration: 750,
+            ease: cubicEase,
+          });
+        },
+      });
+    });
+  }
 
   document.querySelectorAll(".home_cms--link").forEach((link) => {
     const crs = link.querySelector(".home_flw--crs");

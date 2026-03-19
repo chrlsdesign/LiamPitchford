@@ -62,9 +62,6 @@ export function initWork() {
         if (item.classList.contains("off")) return;
         if (item === activeItem) return;
 
-        console.log("mouseenter", item);
-        console.log("activeItem", activeItem);
-
         // deactivate previous
         if (activeItem) {
           activeItem
