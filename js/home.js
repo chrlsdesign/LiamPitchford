@@ -11,6 +11,7 @@ import {
 import Lenis from "lenis";
 
 let scrollObservers = [];
+const played = new Set();
 
 export function initHome() {
   const lenis = new Lenis({
@@ -112,10 +113,23 @@ export function initHome() {
 
       const observer = onScroll({
         target: item,
-        sync: false,
         repeat: false,
         onEnter: () => {
           if (!introPlayed) return;
+          if (played.has(item)) return;
+          played.add(item);
+          animate(item, {
+            clipPath: isOdd
+              ? ["inset(0% 100% 100% 0%)", "inset(0% 0% 0% 0%)"]
+              : ["inset(0% 0% 100% 100%)", "inset(0% 0% 0% 0%)"],
+            duration: 750,
+            ease: cubicEase,
+          });
+        },
+        onEnterBackward: () => {
+          if (!introPlayed) return;
+          if (played.has(item)) return;
+          played.add(item);
           animate(item, {
             clipPath: isOdd
               ? ["inset(0% 100% 100% 0%)", "inset(0% 0% 0% 0%)"]
@@ -177,5 +191,6 @@ function resetScrollReveal() {
 }
 
 export function destroyHome() {
+  played.clear();
   resetScrollReveal();
 }
