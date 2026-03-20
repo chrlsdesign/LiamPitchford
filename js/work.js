@@ -5,32 +5,21 @@ export function initWork() {
   const ab_tl = createTimeline();
   let spduration = 1000,
     spstagger = 10;
-  let aboutPDuration = 0;
 
   classes.forEach((cls) => {
     utils.$(cls).forEach((el) => {
       const split = splitText(el, { words: { wrap: "clip" } });
-      const wordCount = split.words.length;
-      const totalDuration = spduration + spstagger * wordCount; // duration + stagger * words
 
-      if (cls === ".about_p") {
-        aboutPDuration = totalDuration;
-      }
-
-      const offset =
-        cls === ".about_text" || cls === ".about_social" ? aboutPDuration : 0;
+      /*const offset =
+        cls === ".about_text" || cls === ".about_social" ? aboutPDuration : 0;*/
 
       ab_tl
-        .add(
-          split.words,
-          {
-            y: ["100%", "0%"],
-            duration: spduration,
-            ease: "out(3)",
-            delay: stagger(spstagger),
-          },
-          offset,
-        )
+        .add(split.words, {
+          y: ["100%", "0%"],
+          duration: spduration,
+          ease: "out(3)",
+          delay: stagger(spstagger),
+        })
         .init();
     });
   });
