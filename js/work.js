@@ -1,10 +1,4 @@
-import {
-  animate,
-  createTimeline,
-  splitText,
-  stagger,
-  cubicBezier,
-} from "animejs";
+import { animate, createTimeline, splitText, stagger, utils } from "animejs";
 
 export function initWork() {
   const classes = [".work_title"];
