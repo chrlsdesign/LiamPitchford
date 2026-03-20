@@ -60,7 +60,8 @@ class DefaultRenderer extends Renderer {
     const path = window.location.pathname;
     if (path === "/") initHome();
     if (path.includes("about")) initAbout();
-    if (path.includes("work")) initWork();
+    if (path.includes("/work")) initWork();
+    if (path.includes("work/")) initWorkContent();
   }
 
   onLeaveCompleted() {
