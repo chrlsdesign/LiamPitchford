@@ -53,7 +53,7 @@ export function initAbout() {
   let angle = 0;
   let lastAngle = 0;
   const PI = Math.PI;
-  const strength = 0.5;
+  const strength = 1;
 
   let bounds = wrapper.getBoundingClientRect();
   window.addEventListener(
@@ -65,8 +65,8 @@ export function initAbout() {
     const { width, height, left, top } = bounds;
 
     // movement — relative to wrapper
-    const x = (e.clientX - left - width) * strength;
-    const y = (e.clientY - top - height) * strength;
+    const x = (e.clientX - left - width / 2) * strength;
+    const y = (e.clientY - top - height / 2) * strength;
 
     animatable.x(x);
     animatable.y(y);
