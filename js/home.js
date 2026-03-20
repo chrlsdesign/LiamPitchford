@@ -35,7 +35,11 @@ export function initHome() {
     // skip intro, just init scroll reveal directly
     initScrollReveal();
     return;
+  } else {
+    initIntro();
   }
+
+  console.log(introPlayed);
 
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
   const layout = createLayout("body");
@@ -43,67 +47,69 @@ export function initHome() {
     defaults: { duration: 700, ease: cubicEase },
   });
 
-  tl.add(
-    ".intro_title",
-    {
-      translateX: (el, i) => (i === 0 ? ["100%", "0%"] : ["-100%", "0%"]),
-      duration: 500,
-      delay: 250,
-    },
-    0,
-  )
-    .add(
-      ".intro_holder video",
+  function initIntro() {
+    tl.add(
+      ".intro_title",
       {
-        scale: [0, 0.5],
+        translateX: (el, i) => (i === 0 ? ["100%", "0%"] : ["-100%", "0%"]),
+        duration: 500,
+        delay: 250,
       },
-      750,
+      0,
     )
-    .add(
-      ".intro_center",
-      {
-        translateX: (el, i) => {
-          const rect = el.getBoundingClientRect();
-          const padding =
-            parseFloat(getComputedStyle(document.documentElement).fontSize) *
-            0.875;
-
-          if (i === 0) {
-            return -(rect.left - padding);
-          } else {
-            return window.innerWidth - rect.right - padding;
-          }
+      .add(
+        ".intro_holder video",
+        {
+          scale: [0, 0.5],
         },
-      },
-      750,
-    )
-    .add(".intro_holder video", {
-      scale: 1,
-    })
-    .add(".intro", { backgroundColor: "rgba(255,255,255,0)", duration: 250 })
-    .call(() => {
-      const video = document.querySelector(".intro_holder video");
-      const firstLink = document.querySelector(".home_cms--link");
-      if (!video || !firstLink) return;
+        750,
+      )
+      .add(
+        ".intro_center",
+        {
+          translateX: (el, i) => {
+            const rect = el.getBoundingClientRect();
+            const padding =
+              parseFloat(getComputedStyle(document.documentElement).fontSize) *
+              0.875;
 
-      // record positions BEFORE the DOM change
-      layout.record();
-
-      // make the DOM change
-      firstLink.prepend(video);
-      video.classList.add("active");
-
-      // now animate from recorded positions to new positions
-      layout.animate({
-        duration: 1000,
-        ease: cubicEase,
-        onComplete: () => {
-          animate(".intro", { opacity: 0, duration: 600 });
-          introPlayed = true;
-          initScrollReveal();
+            if (i === 0) {
+              return -(rect.left - padding);
+            } else {
+              return window.innerWidth - rect.right - padding;
+            }
+          },
         },
+        750,
+      )
+      .add(".intro_holder video", {
+        scale: 1,
+      })
+      .add(".intro", { backgroundColor: "rgba(255,255,255,0)", duration: 250 })
+      .call(() => {
+        const video = document.querySelector(".intro_holder video");
+        const firstLink = document.querySelector(".home_cms--link");
+        if (!video || !firstLink) return;
+
+        // record positions BEFORE the DOM change
+        layout.record();
+
+        // make the DOM change
+        firstLink.prepend(video);
+        video.classList.add("active");
+
+        // now animate from recorded positions to new positions
+        layout.animate({
+          duration: 1000,
+          ease: cubicEase,
+          onComplete: () => {
+            animate(".intro", { opacity: 0, duration: 600 });
+            introPlayed = true;
+            initScrollReveal();
+          },
+        });
       });
-    });
+  }
 
   function initScrollReveal() {
     const originalList = document.querySelector(".home_list");
