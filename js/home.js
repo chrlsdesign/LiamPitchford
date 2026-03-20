@@ -129,9 +129,10 @@ export function initHome() {
           if (played.has(item)) return;
           played.add(item);
           animate(item, {
-            clipPath: isOdd
+            filter: ["blur(1rem)", "blur(0px)"],
+            /* clipPath: isOdd
               ? ["inset(0% 100% 100% 0%)", "inset(0% 0% 0% 0%)"]
-              : ["inset(0% 0% 100% 100%)", "inset(0% 0% 0% 0%)"],
+              : ["inset(0% 0% 100% 100%)", "inset(0% 0% 0% 0%)"], */
             duration: 750,
             ease: cubicEase,
           });
@@ -141,9 +142,10 @@ export function initHome() {
           if (played.has(item)) return;
           played.add(item);
           animate(item, {
-            clipPath: isOdd
+            filter: ["blur(1rem)", "blur(0px)"],
+            /* clipPath: isOdd
               ? ["inset(0% 100% 100% 0%)", "inset(0% 0% 0% 0%)"]
-              : ["inset(0% 0% 100% 100%)", "inset(0% 0% 0% 0%)"],
+              : ["inset(0% 0% 100% 100%)", "inset(0% 0% 0% 0%)"], */
             duration: 750,
             ease: cubicEase,
           });
