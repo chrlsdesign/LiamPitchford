@@ -12,9 +12,10 @@ import Lenis from "lenis";
 
 let scrollObservers = [];
 const played = new Set();
+let lenis = null;
 
 export function initHome() {
-  const lenis = new Lenis({
+  lenis = new Lenis({
     infinite: true,
     smoothTouch: true,
     syncTouch: true,
@@ -191,6 +192,17 @@ function resetScrollReveal() {
 }
 
 export function destroyHome() {
+  lenis.destroy();
+  scrollObservers.forEach((observer) => observer.revert());
+  scrollObservers = [];
   played.clear();
+  document
+    .querySelectorAll(".home_list:not(.is-clone) .home_item")
+    .forEach((item, i) => {
+      const isOdd = i % 2 === 0;
+      item.style.clipPath = isOdd
+        ? "inset(0% 100% 100% 0%)"
+        : "inset(0% 0% 100% 100%)";
+    });
   resetScrollReveal();
 }
