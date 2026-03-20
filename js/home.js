@@ -15,6 +15,7 @@ const played = new Set();
 let lenis = null;
 
 export function initHome() {
+  //Lenis goes first
   lenis = new Lenis({
     infinite: true,
     smoothTouch: true,
@@ -30,7 +31,11 @@ export function initHome() {
 
   lenis.scrollTo(0, { immediate: true });
 
+  //The rest starts here
   let introPlayed = false;
+  const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
+  const layout = createLayout("body");
+
   if (introPlayed) {
     // skip intro, just init scroll reveal directly
     initScrollReveal();
@@ -40,14 +45,11 @@ export function initHome() {
   }
 
   console.log(introPlayed);
-
-  const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
-  const layout = createLayout("body");
-  const tl = createTimeline({
-    defaults: { duration: 700, ease: cubicEase },
-  });
-
   function initIntro() {
+    const tl = createTimeline({
+      defaults: { duration: 700, ease: cubicEase },
+    });
+
     tl.add(
       ".intro_title",
       {
