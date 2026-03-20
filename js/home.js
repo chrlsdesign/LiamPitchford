@@ -13,6 +13,7 @@ import Lenis from "lenis";
 let scrollObservers = [];
 const played = new Set();
 let lenis = null;
+let introPlayed = false;
 
 export function initHome() {
   //Lenis goes first
@@ -32,7 +33,7 @@ export function initHome() {
   lenis.scrollTo(0, { immediate: true });
 
   //The rest starts here
-  let introPlayed = false;
+
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
   const layout = createLayout("body");
 
@@ -201,6 +202,7 @@ function resetScrollReveal() {
 
 export function destroyHome() {
   lenis.destroy();
+  introPlayed = true;
   scrollObservers.forEach((observer) => observer.revert());
   scrollObservers = [];
   played.clear();
