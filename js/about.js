@@ -65,8 +65,8 @@ export function initAbout() {
     const { width, height, left, top } = bounds;
 
     // movement — relative to wrapper
-    const x = (e.clientX - left - width / 2) * strength;
-    const y = (e.clientY - top - height / 2) * strength;
+    const x = (e.clientX - left - width) * strength;
+    const y = (e.clientY - top - height) * strength;
 
     animatable.x(x);
     animatable.y(y);
