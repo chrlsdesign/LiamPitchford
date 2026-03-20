@@ -14,12 +14,16 @@ export function initWorkContent() {
         cls === ".about_text" || cls === ".about_social" ? aboutPDuration : 0;*/
 
       ab_tl
-        .add(split.words, {
-          y: ["100%", "0%"],
-          duration: spduration,
-          ease: "out(3)",
-          delay: stagger(spstagger),
-        })
+        .add(
+          split.words,
+          {
+            y: ["100%", "0%"],
+            duration: spduration,
+            ease: "out(3)",
+            delay: stagger(spstagger),
+          },
+          0,
+        )
         .init();
     });
   });
