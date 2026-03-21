@@ -57,15 +57,15 @@ export function initCursor() {
       varying float v_alpha;
       uniform vec3 u_color;
       void main(){
-        float d = length(v_uv);
-        if(d > 1.0) discard;
-        gl_FragColor = vec4(u_color, v_alpha);
-        // float d=length(v_uv);
-        // if(d>1.0)discard;
-        // float t=1.0-d;
-        // float gradient=t*t*t*(t*(t*6.0-15.0)+10.0);
-        // float alpha=gradient*v_alpha;
-        // gl_FragColor=vec4(u_color,alpha);
+        // float d = length(v_uv);
+        // if(d > 1.0) discard;
+        // gl_FragColor = vec4(u_color, v_alpha);
+        float d=length(v_uv);
+        if(d>1.0)discard;
+        float t=1.0-d;
+        float gradient=t*t*t*(t*(t*6.0-15.0)+10.0);
+        float alpha=gradient*v_alpha;
+        gl_FragColor=vec4(u_color,alpha);
       }`;
 
   function mkShader(type, src) {
