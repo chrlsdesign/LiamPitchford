@@ -34,7 +34,7 @@ export function initCursor() {
     alpha: true,
   });
   gl.enable(gl.BLEND);
-  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
   const VS = `
       attribute vec2 a_pos;
@@ -57,12 +57,15 @@ export function initCursor() {
       varying float v_alpha;
       uniform vec3 u_color;
       void main(){
-        float d=length(v_uv);
-        if(d>1.0)discard;
-        float t=1.0-d;
-        float gradient=t*t*t*(t*(t*6.0-15.0)+10.0);
-        float alpha=gradient*v_alpha;
-        gl_FragColor=vec4(u_color*alpha,alpha);
+        float d = length(v_uv);
+        if(d > 1.0) discard;
+        gl_FragColor = vec4(u_color, v_alpha);
+        // float d=length(v_uv);
+        // if(d>1.0)discard;
+        // float t=1.0-d;
+        // float gradient=t*t*t*(t*(t*6.0-15.0)+10.0);
+        // float alpha=gradient*v_alpha;
+        // gl_FragColor=vec4(u_color,alpha);
       }`;
 
   function mkShader(type, src) {
