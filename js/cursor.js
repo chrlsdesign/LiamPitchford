@@ -179,7 +179,7 @@ export function initCursor() {
       const age = (now - p.t) / LIFE;
       const prog_ = i / Math.max(len - 1, 1);
       const alpha = Math.pow(1 - age, 2.2) * (prog_ * 0.65 + 0.1);
-      const size = 38 * (0.25 + prog_ * 0.75) * (1 - age * 0.55);
+      const size = 128 * (0.25 + prog_ * 0.75) * (1 - age * 0.55);
       const color = colorAtProgress(prog_);
       drawDot(p.x, p.y, color, alpha, size);
     }
