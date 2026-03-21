@@ -1,14 +1,4 @@
 export function initCursor() {
-  const COLORS = [
-    [18 / 255, 113 / 255, 255 / 255],
-    [221 / 255, 74 / 255, 255 / 255],
-    [100 / 255, 220 / 255, 255 / 255],
-    [200 / 255, 200 / 255, 50 / 255],
-    [180 / 255, 180 / 255, 50 / 255],
-  ];
-
-  console.clear();
-
   const TAIL_LENGTH = 50;
 
   const cursor = document.getElementById("cursor");
