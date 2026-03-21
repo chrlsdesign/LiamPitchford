@@ -80,7 +80,7 @@ export function initHome() {
         },
         750,
       )
-      .add(".intro", { backgroundColor: "rgba(255,255,255,0)", duration: 250 });
+      .add(".intro", { opacity: 0, duration: 250 });
   }
 
   function initScrollReveal() {
