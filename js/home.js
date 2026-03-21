@@ -9,6 +9,7 @@ import {
   onScroll,
 } from "animejs";
 import Lenis from "lenis";
+import { initCursor } from "./cursor.js";
 
 let scrollObservers = [];
 const played = new Set();
@@ -16,6 +17,7 @@ let lenis = null;
 let introPlayed = false;
 
 export function initHome() {
+  initCursor();
   //Lenis goes first
   lenis = new Lenis({
     infinite: true,
@@ -61,13 +63,6 @@ export function initHome() {
       0,
     )
       .add(
-        ".intro_holder video",
-        {
-          scale: [0, 0.5],
-        },
-        750,
-      )
-      .add(
         ".intro_center",
         {
           translateX: (el, i) => {
@@ -85,33 +80,7 @@ export function initHome() {
         },
         750,
       )
-      .add(".intro_holder video", {
-        scale: 1,
-      })
-      .add(".intro", { backgroundColor: "rgba(255,255,255,0)", duration: 250 })
-      .call(() => {
-        const video = document.querySelector(".intro_holder video");
-        const firstLink = document.querySelector(".home_cms--link");
-        if (!video || !firstLink) return;
-
-        // record positions BEFORE the DOM change
-        layout.record();
-
-        // make the DOM change
-        firstLink.prepend(video);
-        video.classList.add("active");
-
-        // now animate from recorded positions to new positions
-        layout.animate({
-          duration: 1000,
-          ease: cubicEase,
-          onComplete: () => {
-            animate(".intro", { opacity: 0, duration: 600 });
-            introPlayed = true;
-            initScrollReveal();
-          },
-        });
-      });
+      .add(".intro", { backgroundColor: "rgba(255,255,255,0)", duration: 250 });
   }
 
   function initScrollReveal() {
