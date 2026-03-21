@@ -29,7 +29,10 @@ export function initCursor() {
   resize();
   window.addEventListener("resize", resize);
 
-  const gl = canvas.getContext("webgl", { premultipliedAlpha: false });
+  const gl = canvas.getContext("webgl", {
+    premultipliedAlpha: false,
+    alpha: true,
+  });
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
@@ -161,7 +164,7 @@ export function initCursor() {
       H = canvas.height;
 
     gl.viewport(0, 0, W, H);
-    gl.clearColor(0.04, 0.04, 0.04, 1);
+    gl.clearColor(0.04, 0.04, 0.04, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform2f(uRes, W, H);
 
