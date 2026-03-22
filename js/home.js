@@ -9,7 +9,6 @@ import {
   onScroll,
 } from "animejs";
 import Lenis from "lenis";
-import { initCursor } from "./cursor.js";
 
 let scrollObservers = [];
 const played = new Set();
@@ -17,7 +16,6 @@ let lenis = null;
 let introPlayed = false;
 
 export function initHome() {
-  initCursor();
   //Lenis goes first
   lenis = new Lenis({
     infinite: true,
