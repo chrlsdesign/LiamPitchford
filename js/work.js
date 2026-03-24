@@ -91,12 +91,12 @@ export function initWork() {
             ?.classList.remove("is-active");
           animate(activeItem.querySelectorAll(".work_thumb"), {
             opacity: 0,
+            filter: ["blur(0px)", "blur(20px)"],
             duration: 300,
             ease: "outQuad",
           });
           animate(activeItem.querySelector(".work_thumb--holder"), {
             display: "none",
-            filter: ["blur(0px)", "blur(20px)"],
             duration: 0,
           });
         }
@@ -104,12 +104,12 @@ export function initWork() {
         // activate current
         item.querySelector(".work_title")?.classList.add("is-active");
         animate(item.querySelector(".work_thumb--holder"), {
-          display: "block",
-          filter: ["blur(20px)", "blur(0px)"],
+          display: "flex",
           duration: 0,
         });
         animate(item.querySelectorAll(".work_thumb"), {
           opacity: 1,
+          filter: ["blur(20px)", "blur(0px)"],
           duration: 300,
           ease: "outQuad",
         });
