@@ -28,7 +28,7 @@ export function initWork() {
     });
   });
 
-  const filters = document.querySelectorAll(
+  /* const filters = document.querySelectorAll(
     '[filter-lp="filters"] [filter-lp-field]',
   );
   const items = document.querySelectorAll(
@@ -65,12 +65,12 @@ export function initWork() {
         workItem.querySelector(".work_title").classList.toggle("off", !match);
       });
     });
-  });
+  });*/
 
   //Hover Project
   workItems.forEach((item) => {
     item.querySelector(".work_title")?.classList.remove("is-active");
-    const link = item.querySelector(".work_link");
+    const link = item.querySelector(".work_thumb--holder");
     const thumbs = item.querySelectorAll(".work_thumb");
     if (link) link.style.display = "none";
     thumbs.forEach((thumb) => (thumb.style.opacity = "0"));
@@ -93,18 +93,18 @@ export function initWork() {
             duration: 300,
             ease: "outQuad",
           });
-          animate(activeItem.querySelector(".work_link"), {
+          animate(activeItem.querySelector(".work_thumb--holder"), {
             display: "none",
-            pointerEvents: "none",
+            filter: ["blur(0px)", "blur(20px)"],
             duration: 0,
           });
         }
 
         // activate current
         item.querySelector(".work_title")?.classList.add("is-active");
-        animate(item.querySelector(".work_link"), {
+        animate(item.querySelector(".work_thumb--holder"), {
           display: "block",
-          pointerEvents: "auto",
+          filter: ["blur(20px)", "blur(0px)"],
           duration: 0,
         });
         animate(item.querySelectorAll(".work_thumb"), {

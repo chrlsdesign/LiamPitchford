@@ -3,7 +3,6 @@ import { initHome, destroyHome } from "./js/home.js";
 import { initAbout } from "./js/about.js";
 import { initWork } from "./js/work.js";
 import { initWorkContent } from "./js/work-content.js";
-import { initCursor } from "./js/cursor.js";
 
 if ("scrollRestoration" in history) {
   history.scrollRestoration = "manual";

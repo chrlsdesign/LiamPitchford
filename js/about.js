@@ -70,16 +70,5 @@ export function initAbout() {
 
     animatable.x(x);
     animatable.y(y);
-
-    // rotation from center
-    const currentAngle = Math.atan2(
-      e.clientY - top - height / 2,
-      e.clientX - left - width / 2,
-    );
-    const diff = currentAngle - lastAngle;
-    angle += diff > PI ? diff - 2 * PI : diff < -PI ? diff + 2 * PI : diff;
-    lastAngle = currentAngle;
-
-    animatable.rotate(angle * strength);
   });
 }
