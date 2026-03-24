@@ -28,6 +28,11 @@ export function initWork() {
     });
   });
 
+  const controller = new AbortController();
+  const { signal } = controller;
+  const workItems = document.querySelectorAll(".work_item");
+  let activeItem = null;
+
   /* const filters = document.querySelectorAll(
     '[filter-lp="filters"] [filter-lp-field]',
   );
@@ -36,10 +41,6 @@ export function initWork() {
   );
 
   let activeFilter = "all";
-  const controller = new AbortController();
-  const { signal } = controller;
-  const workItems = document.querySelectorAll(".work_item");
-  let activeItem = null;
 
   filters.forEach((btn) => {
     btn.addEventListener("click", () => {
