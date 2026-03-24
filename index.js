@@ -8,8 +8,6 @@ if ("scrollRestoration" in history) {
   history.scrollRestoration = "manual";
 }
 
-initCursor();
-
 function updateTime() {
   document.querySelector("#time").textContent = new Date().toLocaleTimeString(
     "en-GB",
