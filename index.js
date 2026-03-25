@@ -75,7 +75,7 @@ const app = new Core({
   renderers: { default: DefaultRenderer },
 });
 
-app.on(Core.EVENT.NAVIGATE_END, ({ to }) => {
+app.on("NAVIGATE_END", ({ to }) => {
   const currentPath = to.pathname;
 
   document.querySelectorAll(".nav a, .nav_link").forEach((link) => {
