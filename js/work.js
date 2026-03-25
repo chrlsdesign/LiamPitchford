@@ -89,6 +89,11 @@ export function initWork() {
           activeItem
             .querySelector(".work_title")
             ?.classList.remove("is-active");
+          animate(activeItem.querySelector(".work_title"), {
+            opacity: 0.4,
+            duration: 300,
+            ease: "outQuad",
+          });
           animate(activeItem.querySelectorAll(".work_thumb"), {
             opacity: 0,
             filter: ["blur(0px)", "blur(20px)"],
@@ -103,10 +108,24 @@ export function initWork() {
             },
             "<",
           );
+        } else {
+          workItems.forEach((wi) => {
+            if (wi === item || wi.classList.contains("off")) return;
+            animate(wi.querySelector(".work_title"), {
+              opacity: 0.4,
+              duration: 300,
+              ease: "outQuad",
+            });
+          });
         }
 
         // activate current
         item.querySelector(".work_title")?.classList.add("is-active");
+        animate(item.querySelector(".work_title"), {
+          opacity: 1,
+          duration: 300,
+          ease: "outQuad",
+        });
         animate(item.querySelector(".work_thumb--holder"), {
           display: "flex",
           duration: 0,
