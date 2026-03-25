@@ -130,11 +130,11 @@ export function initHome() {
       const offsetY = 8;
 
       const x = Math.min(
-        Math.max(e.clientX - linkRect.left, 0),
+        Math.max(e.clientX - linkRect.left + offsetX, 0),
         Math.max(0, linkRect.width - w),
       );
       const y = Math.min(
-        Math.max(e.clientY - linkRect.top, 0),
+        Math.max(e.clientY - linkRect.top + offsetY, 0),
         Math.max(0, linkRect.height - h),
       );
 
