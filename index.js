@@ -74,3 +74,14 @@ const app = new Core({
   transitions: { default: FadeTransition },
   renderers: { default: DefaultRenderer },
 });
+
+app.on(Core.EVENT.NAVIGATE_END, ({ to }) => {
+  const currentPath = to.pathname;
+
+  document.querySelectorAll(".nav a, .nav_link").forEach((link) => {
+    link.classList.remove("w--current");
+    if (link.getAttribute("href") === currentPath) {
+      link.classList.add("w--current");
+    }
+  });
+});
