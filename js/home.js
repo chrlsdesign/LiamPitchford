@@ -126,15 +126,15 @@ export function initHome() {
 
       const w = crsRect.width;
       const h = crsRect.height;
-      const offsetX = 8;
-      const offsetY = 8;
+      const offsetX = 4;
+      const offsetY = 4;
 
       const x = Math.min(
-        Math.max(e.clientX - linkRect.left + offsetX, 0),
+        Math.max(e.clientX - linkRect.left - offsetX, 0),
         Math.max(0, linkRect.width - w),
       );
       const y = Math.min(
-        Math.max(e.clientY - linkRect.top + offsetY, 0),
+        Math.max(e.clientY - linkRect.top - offsetY, 0),
         Math.max(0, linkRect.height - h),
       );
 
