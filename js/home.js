@@ -232,8 +232,8 @@ function initGalleryZoom() {
   function resetImgState() {
     fullImg.style.width = "";
     fullImg.style.height = "";
-    fullImg.style.maxWidth = "92vw";
-    fullImg.style.maxHeight = "88vh";
+    fullImg.style.maxWidth = "75vw";
+    fullImg.style.maxHeight = "80vh";
     fullImg.style.transform = "translate(0,0)";
     curTx = 0;
     curTy = 0;
