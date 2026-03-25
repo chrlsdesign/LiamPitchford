@@ -156,23 +156,25 @@ export function initHome() {
 }
 
 function initGalleryZoom() {
-  const items = [...document.querySelectorAll("[data-zoom-item]")];
-  if (!items.length) return null;
+  const allItems = [...document.querySelectorAll("[data-zoom-item]")];
+  if (!allItems.length) return null;
 
-  const images = items
-    .map((item) => {
-      const img =
-        item.querySelector("[data-zoom-thumb]") || item.querySelector("img");
-      const thumb = img?.src || "";
-      const rawFull = img?.dataset.zoomFull || img?.src || thumb;
-      const full = rawFull.split("?")[0];
-      const name =
-        item.querySelector("[data-zoom-name]")?.textContent.trim() || "";
-      const city =
-        item.querySelector("[data-zoom-city]")?.textContent.trim() || "";
-      return { thumb, full, name, city };
-    })
-    .filter((i) => i.thumb);
+  const items = [];
+  const images = [];
+
+  allItems.forEach((item) => {
+    const img =
+      item.querySelector("[data-zoom-thumb]") || item.querySelector("img");
+    if (!img?.src) return;
+    const rawFull = img.dataset.zoomFull || img.src;
+    const full = rawFull.split("?")[0];
+    const name =
+      item.querySelector("[data-zoom-name]")?.textContent.trim() || "";
+    const city =
+      item.querySelector("[data-zoom-city]")?.textContent.trim() || "";
+    items.push(item);
+    images.push({ thumb: img.src, full, name, city });
+  });
 
   if (!images.length) return null;
 
