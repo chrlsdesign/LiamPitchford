@@ -128,7 +128,7 @@ export function initWork() {
     );
   });
 
-  const duration = 40; // match your animation duration in seconds
+  /* const duration = 40; // match your animation duration in seconds
 
   function mouseToProgress(mx, my) {
     // mx, my normalized 0-1 (mouse % of screen)
@@ -172,5 +172,5 @@ export function initWork() {
       g1.style.animationPlayState = "running";
       g2.style.animationPlayState = "running";
     }, 1500);
-  });
+  }); */
 }
