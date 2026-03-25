@@ -161,6 +161,7 @@ function initGalleryZoom() {
 
   const items = [];
   const images = [];
+  const thumbEls = [];
 
   allItems.forEach((item) => {
     const img =
@@ -168,12 +169,11 @@ function initGalleryZoom() {
     if (!img?.src) return;
     const rawFull = img.dataset.zoomFull || img.src;
     const full = rawFull.split("?")[0];
-    const name =
-      item.querySelector("[data-zoom-name]")?.textContent.trim() || "";
-    const city =
-      item.querySelector("[data-zoom-city]")?.textContent.trim() || "";
+    const i = items.length;
     items.push(item);
-    images.push({ thumb: img.src, full, name, city });
+    images.push({ thumb: img.src, full });
+    thumbEls.push(img);
+    img.setAttribute("data-layout-id", `zoom-${i}`);
   });
 
   if (!images.length) return null;
@@ -200,6 +200,10 @@ function initGalleryZoom() {
     zoomWrap.appendChild(fullImg);
   }
 
+  const modalLayout = createLayout(overlay, {
+    children: ["[data-zoom-thumb]", "[data-zoom-item] img", "#zoom-img"],
+  });
+
   items.forEach((item, i) => {
     item.addEventListener("click", () => openOverlay(i), { signal: sig });
   });
@@ -208,6 +212,7 @@ function initGalleryZoom() {
   let idx = 0,
     isZoomed = false,
     isMobile = false;
+  let openItem = null;
   let naturalW = 0,
     naturalH = 0;
   let baseW = 0,
@@ -224,23 +229,7 @@ function initGalleryZoom() {
   }
   checkMobile();
 
-  function openOverlay(i) {
-    idx = i;
-    loadImage(i);
-    overlay.classList.add("is-open");
-    document.body.style.overflow = "hidden";
-  }
-
-  function closeOverlay() {
-    if (isZoomed) zoomOut(true);
-    overlay.classList.remove("is-open");
-    document.body.style.overflow = "";
-  }
-
-  function loadImage(i) {
-    if (isZoomed) zoomOut(true);
-    const d = images[i];
-    fullImg.src = d.full;
+  function resetImgState() {
     fullImg.style.width = "";
     fullImg.style.height = "";
     fullImg.style.maxWidth = "92vw";
@@ -250,6 +239,53 @@ function initGalleryZoom() {
     curTy = 0;
     naturalW = 0;
     naturalH = 0;
+  }
+
+  function openOverlay(i) {
+    idx = i;
+    fullImg.src = images[i].thumb;
+    fullImg.setAttribute("data-layout-id", `zoom-${i}`);
+    openItem = items[i];
+
+    modalLayout.update(
+      () => {
+        overlay.classList.add("is-open");
+        openItem.style.visibility = "hidden";
+      },
+      { duration: 500, ease: "outQuint" },
+    );
+
+    fullImg.src = images[i].full;
+    resetImgState();
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeOverlay() {
+    if (isZoomed) zoomOut(true);
+
+    modalLayout.update(
+      () => {
+        overlay.classList.remove("is-open");
+        if (openItem) {
+          openItem.style.visibility = "";
+          openItem = null;
+        }
+      },
+      { duration: 500, ease: "outQuint" },
+    );
+
+    fullImg.removeAttribute("data-layout-id");
+    document.body.style.overflow = "";
+  }
+
+  function loadImage(i) {
+    if (isZoomed) zoomOut(true);
+    if (openItem) openItem.style.visibility = "";
+    fullImg.src = images[i].full;
+    fullImg.setAttribute("data-layout-id", `zoom-${i}`);
+    openItem = items[i];
+    openItem.style.visibility = "hidden";
+    resetImgState();
   }
 
   function navigate(dir) {
@@ -483,6 +519,8 @@ function initGalleryZoom() {
     ac.abort();
     if (mRAF) cancelAnimationFrame(mRAF);
     fullImg.remove();
+    modalLayout.revert();
+    thumbEls.forEach((el) => el.removeAttribute("data-layout-id"));
   };
 }
 
