@@ -47,7 +47,6 @@ export function initAbout() {
   const animatable = createAnimatable(blob, {
     x: { duration: 800, ease: "out(3)" },
     y: { duration: 800, ease: "out(3)" },
-    rotate: { duration: 600, ease: "linear", unit: "rad" },
   });
 
   let angle = 0;

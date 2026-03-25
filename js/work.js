@@ -95,10 +95,14 @@ export function initWork() {
             duration: 300,
             ease: "outQuad",
           });
-          animate(activeItem.querySelector(".work_thumb--holder"), {
-            display: "none",
-            duration: 0,
-          });
+          animate(
+            activeItem.querySelector(".work_thumb--holder"),
+            {
+              display: "none",
+              duration: 0,
+            },
+            "<",
+          );
         }
 
         // activate current
@@ -107,12 +111,16 @@ export function initWork() {
           display: "flex",
           duration: 0,
         });
-        animate(item.querySelectorAll(".work_thumb"), {
-          opacity: 1,
-          filter: ["blur(20px)", "blur(0px)"],
-          duration: 300,
-          ease: "outQuad",
-        });
+        animate(
+          item.querySelectorAll(".work_thumb"),
+          {
+            opacity: 1,
+            filter: ["blur(20px)", "blur(0px)"],
+            duration: 300,
+            ease: "outQuad",
+          },
+          "<",
+        );
 
         activeItem = item;
       },

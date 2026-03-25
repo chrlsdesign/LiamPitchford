@@ -124,19 +124,21 @@ export function initHome() {
       const linkRect = link.getBoundingClientRect();
       const crsRect = crs.getBoundingClientRect();
 
-      const halfW = crsRect.width / 2;
-      const halfH = crsRect.height / 2;
+      const w = crsRect.width;
+      const h = crsRect.height;
+      const offsetX = 8;
+      const offsetY = 8;
 
       const x = Math.min(
-        Math.max(e.clientX - linkRect.left, halfW),
-        linkRect.width - halfW,
+        Math.max(e.clientX - linkRect.left, 0),
+        Math.max(0, linkRect.width - w),
       );
       const y = Math.min(
-        Math.max(e.clientY - linkRect.top, halfH),
-        linkRect.height - halfH,
+        Math.max(e.clientY - linkRect.top, 0),
+        Math.max(0, linkRect.height - h),
       );
 
-      crs.style.transform = `translate(${x - halfW}px, ${y - halfH}px)`;
+      crs.style.transform = `translate(${x}px, ${y}px)`;
     });
 
     link.addEventListener("mouseenter", () => {
