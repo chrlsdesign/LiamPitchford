@@ -127,4 +127,50 @@ export function initWork() {
       { signal },
     );
   });
+
+  const duration = 40; // match your animation duration in seconds
+
+  function mouseToProgress(mx, my) {
+    // mx, my normalized 0-1 (mouse % of screen)
+    // Square path: TL(0,0) → TR(1,0) → BR(1,1) → BL(0,1) → TL
+    // Find closest edge and its arc position
+
+    const edges = [
+      { t: mx, dist: my }, // top edge,    y=0
+      { t: my + 1, dist: 1 - mx }, // right edge,  x=1
+      { t: 1 - mx + 2, dist: 1 - my }, // bottom edge, y=1
+      { t: 1 - my + 3, dist: mx }, // left edge,   x=0
+    ];
+
+    const best = edges.reduce((a, b) => (b.dist < a.dist ? b : a));
+    return best.t / 4; // 0-1
+  }
+
+  function seekTo(el, progress) {
+    el.style.animationDelay = `-${progress * duration}s`;
+    el.style.animationPlayState = "paused";
+  }
+
+  const g1 = document.querySelector(".work-g1");
+  const g2 = document.querySelector(".work-g2");
+  let resumeTimer = null;
+
+  document.addEventListener("mousemove", (e) => {
+    const mx = e.clientX / window.innerWidth;
+    const my = e.clientY / window.innerHeight;
+
+    const g1Progress = mouseToProgress(mx, my);
+    const g2Progress = (g1Progress + 0.5) % 1; // g2 is half a cycle offset
+
+    seekTo(g1, g1Progress);
+    seekTo(g2, g2Progress);
+
+    clearTimeout(resumeTimer);
+
+    resumeTimer = setTimeout(() => {
+      // resume from current frozen position
+      g1.style.animationPlayState = "running";
+      g2.style.animationPlayState = "running";
+    }, 1500);
+  });
 }
