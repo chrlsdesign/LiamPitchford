@@ -36,7 +36,6 @@ export function initHome() {
   //The rest starts here
 
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
-  const layout = createLayout("body");
 
   if (introPlayed) {
     // skip intro, just init scroll reveal directly
@@ -46,7 +45,6 @@ export function initHome() {
     initIntro();
   }
 
-  console.log(introPlayed);
   function initIntro() {
     const tl = createTimeline({
       defaults: { duration: 700, ease: cubicEase },
@@ -80,7 +78,8 @@ export function initHome() {
         750,
       )
       .add(".intro", { opacity: 0, duration: 250 })
-      .then(() => {
+      .call(() => {
+        introPlayed = true;
         initScrollReveal();
       });
   }
@@ -96,7 +95,6 @@ export function initHome() {
         target: item,
         repeat: false,
         onEnter: () => {
-          if (!introPlayed) return;
           if (played.has(item)) return;
           played.add(item);
           animate(item, {
@@ -106,7 +104,6 @@ export function initHome() {
           });
         },
         onEnterBackward: () => {
-          if (!introPlayed) return;
           if (played.has(item)) return;
           played.add(item);
           animate(item, {
