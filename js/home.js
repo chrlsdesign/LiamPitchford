@@ -79,7 +79,10 @@ export function initHome() {
         },
         750,
       )
-      .add(".intro", { opacity: 0, duration: 250 });
+      .add(".intro", { opacity: 0, duration: 250 })
+      .then(() => {
+        initScrollReveal();
+      });
   }
 
   function initScrollReveal() {
