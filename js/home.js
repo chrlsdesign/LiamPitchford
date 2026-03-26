@@ -7,6 +7,53 @@ const played = new Set();
 let lenis = null;
 let destroyGalleryZoom = null;
 
+const HOME_ITEM_BLUR_START = "blur(20px)";
+const HOME_ITEM_BLUR_END = "blur(0px)";
+
+function getHomeListItems() {
+  const list = document.querySelector(".home_list");
+  return list ? [...list.querySelectorAll(".home_item")] : [];
+}
+
+function setHomeItemsBlurred(items) {
+  items.forEach((item) => {
+    animate(item, { filter: HOME_ITEM_BLUR_START, duration: 0 });
+  });
+}
+
+function initScrollReveal(cubicEase) {
+  const originalList = document.querySelector(".home_list");
+  if (!originalList) return;
+  const items = originalList.querySelectorAll(".home_item");
+
+  items.forEach((item) => {
+    const observer = onScroll({
+      target: item,
+      repeat: false,
+      onEnter: () => {
+        if (played.has(item)) return;
+        played.add(item);
+        animate(item, {
+          filter: [HOME_ITEM_BLUR_START, HOME_ITEM_BLUR_END],
+          duration: 750,
+          ease: cubicEase,
+        });
+      },
+      onEnterBackward: () => {
+        if (played.has(item)) return;
+        played.add(item);
+        animate(item, {
+          filter: [HOME_ITEM_BLUR_START, HOME_ITEM_BLUR_END],
+          duration: 750,
+          ease: cubicEase,
+        });
+      },
+    });
+
+    scrollObservers.push(observer);
+  });
+}
+
 export function initHome({ playSharedIntro = false } = {}) {
   //Lenis goes first
   lenis = new Lenis({
@@ -28,47 +75,13 @@ export function initHome({ playSharedIntro = false } = {}) {
 
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
+  const homeItems = getHomeListItems();
+  if (homeItems.length) setHomeItemsBlurred(homeItems);
+
   if (playSharedIntro) {
-    playSharedIntroIfPresent().then(() => {
-      initScrollReveal();
-    });
+    playSharedIntroIfPresent().then(() => initScrollReveal(cubicEase));
   } else {
-    initScrollReveal();
-  }
-
-  function initScrollReveal() {
-    const originalList = document.querySelector(".home_list");
-    if (!originalList) return;
-    const items = originalList.querySelectorAll(".home_item");
-
-    items.forEach((item, i) => {
-      const isOdd = i % 2 === 0;
-
-      const observer = onScroll({
-        target: item,
-        repeat: false,
-        onEnter: () => {
-          if (played.has(item)) return;
-          played.add(item);
-          animate(item, {
-            filter: ["blur(20px)", "blur(0px)"],
-            duration: 750,
-            ease: cubicEase,
-          });
-        },
-        onEnterBackward: () => {
-          if (played.has(item)) return;
-          played.add(item);
-          animate(item, {
-            filter: ["blur(20px)", "blur(0px)"],
-            duration: 750,
-            ease: cubicEase,
-          });
-        },
-      });
-
-      scrollObservers.push(observer);
-    });
+    initScrollReveal(cubicEase);
   }
 
   document.querySelectorAll(".home_cms--link").forEach((link) => {
