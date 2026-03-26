@@ -1,37 +1,56 @@
 import { animate, createTimeline, splitText, stagger, utils } from "animejs";
 import { playSharedIntroIfPresent } from "./intro.js";
 
-function runWorkPageIntro() {
-  const classes = [".work_title"];
-  const ab_tl = createTimeline();
-  let spduration = 1000,
-    spstagger = 10;
+const WORK_INTRO_CLASSES = [".work_title"];
 
-  classes.forEach((cls) => {
+function collectWorkWordSplits() {
+  const spduration = 1000;
+  const spstagger = 10;
+  const blocks = [];
+
+  WORK_INTRO_CLASSES.forEach((cls) => {
     utils.$(cls).forEach((el) => {
       const split = splitText(el, { words: { wrap: "clip" } });
-
-      ab_tl
-        .add(
-          split.words,
-          {
-            y: ["100%", "0%"],
-            duration: spduration,
-            ease: "out(3)",
-            delay: stagger(spstagger),
-          },
-          0,
-        )
-        .init();
+      blocks.push({ split, spduration, spstagger });
     });
+  });
+
+  return blocks;
+}
+
+function setWorkWordsHidden(blocks) {
+  blocks.forEach(({ split }) => {
+    animate(split.words, { y: "100%", duration: 0 });
   });
 }
 
+function runWorkPageIntro(blocks) {
+  const ab_tl = createTimeline();
+
+  blocks.forEach(({ split, spduration, spstagger }) => {
+    ab_tl.add(
+      split.words,
+      {
+        y: ["100%", "0%"],
+        duration: spduration,
+        ease: "out(3)",
+        delay: stagger(spstagger, { start: 0 }),
+      },
+      0,
+    );
+  });
+
+  ab_tl.init();
+}
+
 export function initWork({ playSharedIntro = false } = {}) {
+  const blocks = collectWorkWordSplits();
+  setWorkWordsHidden(blocks);
+
   if (playSharedIntro) {
-    playSharedIntroIfPresent().then(() => runWorkPageIntro());
+    playSharedIntroIfPresent().then(() => runWorkPageIntro(blocks));
   } else {
-    runWorkPageIntro();
+    runWorkPageIntro(blocks);
   }
 
   const controller = new AbortController();
