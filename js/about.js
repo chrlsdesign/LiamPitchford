@@ -5,6 +5,7 @@ import {
   stagger,
   utils,
 } from "animejs";
+import { playIntro } from "./intro.js";
 
 export function initAbout({ playIntro = false } = {}) {
   const classes = [".about_p", ".about_work", ".about_text", ".about_social"];

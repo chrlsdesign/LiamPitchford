@@ -3,7 +3,12 @@ import { initHome, destroyHome } from "./js/home.js";
 import { initAbout } from "./js/about.js";
 import { initWork } from "./js/work.js";
 import { initWorkContent } from "./js/work-content.js";
-let isInitialLoad = true;
+const introPlayedByPage = {
+  home: false,
+  about: false,
+  work: false,
+  workContent: false,
+};
 
 if ("scrollRestoration" in history) {
   history.scrollRestoration = "manual";
@@ -60,12 +65,20 @@ class DefaultRenderer extends Renderer {
 
     const path = window.location.pathname;
     if (path === "/") {
-      initHome({ playIntro: isInitialLoad });
+      initHome({ playIntro: !introPlayedByPage.home });
+      introPlayedByPage.home = true;
     }
-    if (path.includes("about")) initAbout({ playIntro: isInitialLoad });
-    if (path.includes("/work")) initWork({ playIntro: isInitialLoad });
-    if (path.includes("work/")) initWorkContent({ playIntro: isInitialLoad });
-    isInitialLoad = false;
+    if (path.includes("about")) {
+      initAbout({ playIntro: !introPlayedByPage.about });
+      introPlayedByPage.about = true;
+    }
+    if (path.includes("work/")) {
+      initWorkContent({ playIntro: !introPlayedByPage.workContent });
+      introPlayedByPage.workContent = true;
+    } else if (path.includes("/work")) {
+      initWork({ playIntro: !introPlayedByPage.work });
+      introPlayedByPage.work = true;
+    }
   }
 
   onLeaveCompleted() {

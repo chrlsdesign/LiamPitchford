@@ -1,6 +1,6 @@
 import { createTimeline } from "animejs";
 
-export function playHomeIntro(cubicEase) {
+export function playIntro(cubicEase) {
   const tl = createTimeline({
     defaults: { duration: 700, ease: cubicEase },
   });
