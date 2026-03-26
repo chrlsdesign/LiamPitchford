@@ -1,5 +1,4 @@
 import { animate, createTimeline, splitText, stagger, utils } from "animejs";
-import { playIntro } from "./intro.js";
 
 export function initWork({ playIntro = false } = {}) {
   if (playIntro) {

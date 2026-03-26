@@ -10,6 +10,20 @@ const introPlayedByPage = {
   workContent: false,
 };
 
+function routeSegments(pathname) {
+  const p = pathname.split("?")[0].toLowerCase().replace(/\/+$/, "") || "/";
+  const segs = p === "/" ? [] : p.split("/").filter(Boolean);
+  return { p, segs };
+}
+
+function isHomeSegments(segs) {
+  return (
+    segs.length === 0 ||
+    (segs.length === 1 &&
+      (segs[0] === "index.html" || segs[0] === "index.htm"))
+  );
+}
+
 if ("scrollRestoration" in history) {
   history.scrollRestoration = "manual";
 }
@@ -63,27 +77,32 @@ class DefaultRenderer extends Renderer {
     document.documentElement.scrollTop = 0;
     window.scrollTo(0, 0);
 
-    const path = window.location.pathname;
-    if (path === "/") {
+    const { segs } = routeSegments(window.location.pathname);
+    const isHome = isHomeSegments(segs);
+    const isAbout = segs[0] === "about";
+    const isWorkContent = segs[0] === "work" && segs.length >= 2;
+    const isWorkList = segs[0] === "work" && segs.length === 1;
+
+    if (isHome) {
       initHome({ playIntro: !introPlayedByPage.home });
       introPlayedByPage.home = true;
     }
-    if (path.includes("about")) {
+    if (isAbout) {
       initAbout({ playIntro: !introPlayedByPage.about });
       introPlayedByPage.about = true;
     }
-    if (path.includes("work/")) {
+    if (isWorkContent) {
       initWorkContent({ playIntro: !introPlayedByPage.workContent });
       introPlayedByPage.workContent = true;
-    } else if (path.includes("/work")) {
+    } else if (isWorkList) {
       initWork({ playIntro: !introPlayedByPage.work });
       introPlayedByPage.work = true;
     }
   }
 
   onLeaveCompleted() {
-    const path = window.location.pathname;
-    if (path === "/") destroyHome();
+    const { segs } = routeSegments(window.location.pathname);
+    if (isHomeSegments(segs)) destroyHome();
   }
 }
 

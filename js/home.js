@@ -1,6 +1,6 @@
 import { animate, cubicBezier, createLayout, onScroll } from "animejs";
 import Lenis from "lenis";
-import { playIntro } from "./intro.js";
+import { playHomeIntro } from "./intro.js";
 
 let scrollObservers = [];
 const played = new Set();
@@ -29,7 +29,7 @@ export function initHome({ playIntro = false } = {}) {
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
   if (playIntro) {
-    playIntro(cubicEase).then(() => {
+    playHomeIntro(cubicEase).then(() => {
       initScrollReveal();
     });
   } else {
@@ -38,6 +38,7 @@ export function initHome({ playIntro = false } = {}) {
 
   function initScrollReveal() {
     const originalList = document.querySelector(".home_list");
+    if (!originalList) return;
     const items = originalList.querySelectorAll(".home_item");
 
     items.forEach((item, i) => {
