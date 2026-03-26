@@ -27,9 +27,11 @@ function runWorkContentPageIntro() {
   });
 }
 
-export function initWorkContent({ playIntro = false } = {}) {
-  if (playIntro) {
+export function initWorkContent({ playSharedIntro = false } = {}) {
+  if (playSharedIntro) {
     playSharedIntroIfPresent().then(() => runWorkContentPageIntro());
+  } else {
+    runWorkContentPageIntro();
   }
 
   const items = document.querySelectorAll(

@@ -7,7 +7,7 @@ const played = new Set();
 let lenis = null;
 let destroyGalleryZoom = null;
 
-export function initHome({ playIntro = false } = {}) {
+export function initHome({ playSharedIntro = false } = {}) {
   //Lenis goes first
   lenis = new Lenis({
     infinite: true,
@@ -28,7 +28,7 @@ export function initHome({ playIntro = false } = {}) {
 
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
-  if (playIntro) {
+  if (playSharedIntro) {
     playSharedIntroIfPresent().then(() => {
       initScrollReveal();
     });

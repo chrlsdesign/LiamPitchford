@@ -27,9 +27,11 @@ function runWorkPageIntro() {
   });
 }
 
-export function initWork({ playIntro = false } = {}) {
-  if (playIntro) {
+export function initWork({ playSharedIntro = false } = {}) {
+  if (playSharedIntro) {
     playSharedIntroIfPresent().then(() => runWorkPageIntro());
+  } else {
+    runWorkPageIntro();
   }
 
   const controller = new AbortController();

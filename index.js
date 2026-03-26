@@ -3,12 +3,9 @@ import { initHome, destroyHome } from "./js/home.js";
 import { initAbout } from "./js/about.js";
 import { initWork } from "./js/work.js";
 import { initWorkContent } from "./js/work-content.js";
-const introPlayedByPage = {
-  home: false,
-  about: false,
-  work: false,
-  workContent: false,
-};
+
+/** 1 = first paint after full page load / refresh; 2+ = Taxi swaps (same JS session). */
+let taxiContentEnterCount = 0;
 
 function routeSegments(pathname) {
   const p = pathname.split("?")[0].toLowerCase().replace(/\/+$/, "") || "/";
@@ -77,6 +74,9 @@ class DefaultRenderer extends Renderer {
     document.documentElement.scrollTop = 0;
     window.scrollTo(0, 0);
 
+    taxiContentEnterCount += 1;
+    const playSharedIntro = taxiContentEnterCount === 1;
+
     const { segs } = routeSegments(window.location.pathname);
     const isHome = isHomeSegments(segs);
     const isAbout = segs.includes("about");
@@ -85,19 +85,15 @@ class DefaultRenderer extends Renderer {
     const isWorkList = wi !== -1 && wi === segs.length - 1;
 
     if (isHome) {
-      initHome({ playIntro: !introPlayedByPage.home });
-      introPlayedByPage.home = true;
+      initHome({ playSharedIntro });
     }
     if (isAbout) {
-      initAbout({ playIntro: !introPlayedByPage.about });
-      introPlayedByPage.about = true;
+      initAbout({ playSharedIntro });
     }
     if (isWorkContent) {
-      initWorkContent({ playIntro: !introPlayedByPage.workContent });
-      introPlayedByPage.workContent = true;
+      initWorkContent({ playSharedIntro });
     } else if (isWorkList) {
-      initWork({ playIntro: !introPlayedByPage.work });
-      introPlayedByPage.work = true;
+      initWork({ playSharedIntro });
     }
   }
 

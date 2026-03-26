@@ -43,9 +43,11 @@ function runAboutPageIntro() {
   });
 }
 
-export function initAbout({ playIntro = false } = {}) {
-  if (playIntro) {
+export function initAbout({ playSharedIntro = false } = {}) {
+  if (playSharedIntro) {
     playSharedIntroIfPresent().then(() => runAboutPageIntro());
+  } else {
+    runAboutPageIntro();
   }
 
   const wrapper = document.querySelector(".section.about");
