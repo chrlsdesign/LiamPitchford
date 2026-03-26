@@ -1,32 +1,34 @@
 import { animate, createTimeline, splitText, stagger, utils } from "animejs";
 
-export function initWork() {
-  const classes = [".work_title"];
-  const ab_tl = createTimeline();
-  let spduration = 1000,
-    spstagger = 10;
+export function initWork({ playIntro = false } = {}) {
+  if (playIntro) {
+    const classes = [".work_title"];
+    const ab_tl = createTimeline();
+    let spduration = 1000,
+      spstagger = 10;
 
-  classes.forEach((cls) => {
-    utils.$(cls).forEach((el) => {
-      const split = splitText(el, { words: { wrap: "clip" } });
+    classes.forEach((cls) => {
+      utils.$(cls).forEach((el) => {
+        const split = splitText(el, { words: { wrap: "clip" } });
 
-      /*const offset =
-        cls === ".about_text" || cls === ".about_social" ? aboutPDuration : 0;*/
+        /*const offset =
+          cls === ".about_text" || cls === ".about_social" ? aboutPDuration : 0;*/
 
-      ab_tl
-        .add(
-          split.words,
-          {
-            y: ["100%", "0%"],
-            duration: spduration,
-            ease: "out(3)",
-            delay: stagger(spstagger),
-          },
-          0,
-        )
-        .init();
+        ab_tl
+          .add(
+            split.words,
+            {
+              y: ["100%", "0%"],
+              duration: spduration,
+              ease: "out(3)",
+              delay: stagger(spstagger),
+            },
+            0,
+          )
+          .init();
+      });
     });
-  });
+  }
 
   const controller = new AbortController();
   const { signal } = controller;

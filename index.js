@@ -3,6 +3,7 @@ import { initHome, destroyHome } from "./js/home.js";
 import { initAbout } from "./js/about.js";
 import { initWork } from "./js/work.js";
 import { initWorkContent } from "./js/work-content.js";
+let isInitialLoad = true;
 
 if ("scrollRestoration" in history) {
   history.scrollRestoration = "manual";
@@ -58,10 +59,13 @@ class DefaultRenderer extends Renderer {
     window.scrollTo(0, 0);
 
     const path = window.location.pathname;
-    if (path === "/") initHome();
-    if (path.includes("about")) initAbout();
-    if (path.includes("/work")) initWork();
-    if (path.includes("work/")) initWorkContent();
+    if (path === "/") {
+      initHome({ playIntro: isInitialLoad });
+    }
+    if (path.includes("about")) initAbout({ playIntro: isInitialLoad });
+    if (path.includes("/work")) initWork({ playIntro: isInitialLoad });
+    if (path.includes("work/")) initWorkContent({ playIntro: isInitialLoad });
+    isInitialLoad = false;
   }
 
   onLeaveCompleted() {

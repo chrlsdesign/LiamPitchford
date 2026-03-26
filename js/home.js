@@ -1,22 +1,18 @@
 import {
   animate,
-  createTimeline,
-  splitText,
-  stagger,
-  utils,
   cubicBezier,
   createLayout,
   onScroll,
 } from "animejs";
 import Lenis from "lenis";
+import { playHomeIntro } from "./intro.js";
 
 let scrollObservers = [];
 const played = new Set();
 let lenis = null;
-let introPlayed = false;
 let destroyGalleryZoom = null;
 
-export function initHome() {
+export function initHome({ playIntro = false } = {}) {
   //Lenis goes first
   lenis = new Lenis({
     infinite: true,
@@ -37,51 +33,12 @@ export function initHome() {
 
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
-  if (introPlayed) {
-    // skip intro, just init scroll reveal directly
-    initScrollReveal();
-    return;
-  } else {
-    initIntro();
-  }
-
-  function initIntro() {
-    const tl = createTimeline({
-      defaults: { duration: 700, ease: cubicEase },
+  if (playIntro) {
+    playHomeIntro(cubicEase).then(() => {
+      initScrollReveal();
     });
-
-    tl.add(
-      ".intro_title",
-      {
-        translateX: (el, i) => (i === 0 ? ["100%", "0%"] : ["-100%", "0%"]),
-        duration: 500,
-        delay: 250,
-      },
-      0,
-    )
-      .add(
-        ".intro_center",
-        {
-          translateX: (el, i) => {
-            const rect = el.getBoundingClientRect();
-            const padding =
-              parseFloat(getComputedStyle(document.documentElement).fontSize) *
-              0.875;
-
-            if (i === 0) {
-              return -(rect.left - padding);
-            } else {
-              return window.innerWidth - rect.right - padding;
-            }
-          },
-        },
-        750,
-      )
-      .add(".intro", { opacity: 0, duration: 250 })
-      .call(() => {
-        introPlayed = true;
-        initScrollReveal();
-      });
+  } else {
+    initScrollReveal();
   }
 
   function initScrollReveal() {
@@ -544,7 +501,6 @@ export function destroyHome() {
     destroyGalleryZoom = null;
   }
   lenis.destroy();
-  introPlayed = true;
   scrollObservers.forEach((observer) => observer.revert());
   scrollObservers = [];
   played.clear();
