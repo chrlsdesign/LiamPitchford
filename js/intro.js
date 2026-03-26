@@ -1,4 +1,4 @@
-import { createTimeline } from "animejs";
+import { createTimeline, cubicBezier } from "animejs";
 
 /** Home-only hero intro (must not be named `playIntro` — callers use a `playIntro` option flag). */
 export function playHomeIntro() {
