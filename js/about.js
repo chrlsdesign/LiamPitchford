@@ -1,4 +1,5 @@
 import {
+  animate,
   createAnimatable,
   createTimeline,
   splitText,
@@ -7,14 +8,20 @@ import {
 } from "animejs";
 import { playSharedIntroIfPresent } from "./intro.js";
 
-function runAboutPageIntro() {
-  const classes = [".about_p", ".about_work", ".about_text", ".about_social"];
-  const ab_tl = createTimeline();
-  let spduration = 1000,
-    spstagger = 10;
-  let aboutPDuration = 0;
+const ABOUT_INTRO_CLASSES = [
+  ".about_p",
+  ".about_work",
+  ".about_text",
+  ".about_social",
+];
 
-  classes.forEach((cls) => {
+function collectAboutWordSplits() {
+  const spduration = 1000;
+  const spstagger = 10;
+  let aboutPDuration = 0;
+  const blocks = [];
+
+  ABOUT_INTRO_CLASSES.forEach((cls) => {
     utils.$(cls).forEach((el) => {
       const split = splitText(el, { words: { wrap: "clip" } });
       const wordCount = split.words.length;
@@ -27,27 +34,46 @@ function runAboutPageIntro() {
       const offset =
         cls === ".about_text" || cls === ".about_social" ? aboutPDuration : 0;
 
-      ab_tl
-        .add(
-          split.words,
-          {
-            y: ["100%", "0%"],
-            duration: spduration,
-            ease: "out(3)",
-            delay: stagger(spstagger),
-          },
-          offset,
-        )
-        .init();
+      blocks.push({ split, offset, spduration, spstagger });
     });
+  });
+
+  return blocks;
+}
+
+function setAboutWordsHidden(blocks) {
+  blocks.forEach(({ split }) => {
+    animate(split.words, { y: "100%", duration: 0 });
+  });
+}
+
+function runAboutPageIntro(blocks) {
+  const ab_tl = createTimeline();
+
+  blocks.forEach(({ split, offset, spduration, spstagger }) => {
+    ab_tl
+      .add(
+        split.words,
+        {
+          y: ["100%", "0%"],
+          duration: spduration,
+          ease: "out(3)",
+          delay: stagger(spstagger),
+        },
+        offset,
+      )
+      .init();
   });
 }
 
 export function initAbout({ playSharedIntro = false } = {}) {
+  const blocks = collectAboutWordSplits();
+  setAboutWordsHidden(blocks);
+
   if (playSharedIntro) {
-    playSharedIntroIfPresent().then(() => runAboutPageIntro());
+    playSharedIntroIfPresent().then(() => runAboutPageIntro(blocks));
   } else {
-    runAboutPageIntro();
+    runAboutPageIntro(blocks);
   }
 
   const wrapper = document.querySelector(".section.about");
