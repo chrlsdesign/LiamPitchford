@@ -29,7 +29,7 @@ export function initHome({ playIntro = false } = {}) {
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
   if (playIntro) {
-    playHomeIntro(cubicEase).then(() => {
+    playHomeIntro().then(() => {
       initScrollReveal();
     });
   } else {

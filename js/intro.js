@@ -1,7 +1,9 @@
 import { createTimeline } from "animejs";
 
 /** Home-only hero intro (must not be named `playIntro` — callers use a `playIntro` option flag). */
-export function playHomeIntro(cubicEase) {
+export function playHomeIntro() {
+  const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
+
   const tl = createTimeline({
     defaults: { duration: 700, ease: cubicEase },
   });
