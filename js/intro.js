@@ -1,9 +1,12 @@
 import { createTimeline, cubicBezier } from "animejs";
 
-/** Home-only hero intro (must not be named `playIntro` — callers use a `playIntro` option flag). */
-export function playHomeIntro() {
-  const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
+const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
+/**
+ * Full-screen intro (.intro / .intro_title / .intro_center).
+ * On non-home templates, include the same intro block in your global layout or this no-ops.
+ */
+export function playHomeIntro() {
   const tl = createTimeline({
     defaults: { duration: 700, ease: cubicEase },
   });
@@ -37,4 +40,10 @@ export function playHomeIntro() {
     .add(".intro", { opacity: 0, duration: 250 });
 
   return tl.then();
+}
+
+/** Use before page-specific entrance animations; skips if intro markup is absent. */
+export function playSharedIntroIfPresent() {
+  if (!document.querySelector(".intro")) return Promise.resolve();
+  return playHomeIntro();
 }

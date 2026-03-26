@@ -79,9 +79,10 @@ class DefaultRenderer extends Renderer {
 
     const { segs } = routeSegments(window.location.pathname);
     const isHome = isHomeSegments(segs);
-    const isAbout = segs[0] === "about";
-    const isWorkContent = segs[0] === "work" && segs.length >= 2;
-    const isWorkList = segs[0] === "work" && segs.length === 1;
+    const isAbout = segs.includes("about");
+    const wi = segs.indexOf("work");
+    const isWorkContent = wi !== -1 && wi < segs.length - 1;
+    const isWorkList = wi !== -1 && wi === segs.length - 1;
 
     if (isHome) {
       initHome({ playIntro: !introPlayedByPage.home });

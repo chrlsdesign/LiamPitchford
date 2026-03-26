@@ -1,33 +1,35 @@
 import { createTimeline, splitText, stagger, utils } from "animejs";
+import { playSharedIntroIfPresent } from "./intro.js";
+
+function runWorkContentPageIntro() {
+  const classes = [".content_title", ".content_desc p"];
+  const ab_tl = createTimeline();
+  let spduration = 1000,
+    spstagger = 10;
+
+  classes.forEach((cls) => {
+    utils.$(cls).forEach((el) => {
+      const split = splitText(el, { words: { wrap: "clip" } });
+
+      ab_tl
+        .add(
+          split.words,
+          {
+            y: ["100%", "0%"],
+            duration: spduration,
+            ease: "out(3)",
+            delay: stagger(spstagger),
+          },
+          0,
+        )
+        .init();
+    });
+  });
+}
 
 export function initWorkContent({ playIntro = false } = {}) {
   if (playIntro) {
-    const classes = [".content_title", ".content_desc p"];
-    const ab_tl = createTimeline();
-    let spduration = 1000,
-      spstagger = 10;
-
-    classes.forEach((cls) => {
-      utils.$(cls).forEach((el) => {
-        const split = splitText(el, { words: { wrap: "clip" } });
-
-        /*const offset =
-          cls === ".about_text" || cls === ".about_social" ? aboutPDuration : 0;*/
-
-        ab_tl
-          .add(
-            split.words,
-            {
-              y: ["100%", "0%"],
-              duration: spduration,
-              ease: "out(3)",
-              delay: stagger(spstagger),
-            },
-            0,
-          )
-          .init();
-      });
-    });
+    playSharedIntroIfPresent().then(() => runWorkContentPageIntro());
   }
 
   const items = document.querySelectorAll(

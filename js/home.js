@@ -1,6 +1,6 @@
 import { animate, cubicBezier, createLayout, onScroll } from "animejs";
 import Lenis from "lenis";
-import { playHomeIntro } from "./intro.js";
+import { playSharedIntroIfPresent } from "./intro.js";
 
 let scrollObservers = [];
 const played = new Set();
@@ -29,7 +29,7 @@ export function initHome({ playIntro = false } = {}) {
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
   if (playIntro) {
-    playHomeIntro().then(() => {
+    playSharedIntroIfPresent().then(() => {
       initScrollReveal();
     });
   } else {
