@@ -51,19 +51,22 @@ function runAboutPageIntro(blocks) {
   const ab_tl = createTimeline();
 
   blocks.forEach(({ split, offset, spduration, spstagger }) => {
-    ab_tl
-      .add(
-        split.words,
-        {
-          y: ["100%", "0%"],
-          duration: spduration,
-          ease: "out(3)",
-          delay: stagger(spstagger),
-        },
-        offset,
-      )
-      .init();
+    // Use stagger `start` instead of timeline position for the delay chain.
+    // Tweens placed later on the timeline get sampled at t=0 and can snap y to
+    // the wrong value, clobbering the instant hide — especially on Taxi (no intro gap).
+    ab_tl.add(
+      split.words,
+      {
+        y: ["100%", "0%"],
+        duration: spduration,
+        ease: "out(3)",
+        delay: stagger(spstagger, { start: offset }),
+      },
+      0,
+    );
   });
+
+  ab_tl.init();
 }
 
 export function initAbout({ playSharedIntro = false } = {}) {
