@@ -25,10 +25,10 @@ function setWorkWordsHidden(blocks) {
 }
 
 function runWorkPageIntro(blocks) {
-  const ab_tl = createTimeline();
+  const wr_tl = createTimeline();
 
   blocks.forEach(({ split, spduration, spstagger }) => {
-    ab_tl.add(
+    wr_tl.add(
       split.words,
       {
         y: ["100%", "0%"],
@@ -40,7 +40,7 @@ function runWorkPageIntro(blocks) {
     );
   });
 
-  ab_tl.init();
+  wr_tl.init();
 }
 
 export function initWork({ playSharedIntro = false } = {}) {
