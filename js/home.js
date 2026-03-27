@@ -135,7 +135,7 @@ function initDialog() {
     let $item;
     modalLayout.update(({ root }) => {
       $dialog.close();
-      $item = buttons.find((item) => item.classList.contains("is-open"));
+      $item = gItems.find((item) => item.classList.contains("is-open"));
       $item.classList.remove("is-open"); // Makes the clicked element visible again
       $item.focus(); // Focus to the closed element to preserve the keyboard navigation flow
     });
