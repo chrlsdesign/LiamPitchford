@@ -123,12 +123,12 @@ export function initHome({ playSharedIntro = false } = {}) {
 }
 
 function initDialog() {
-  const gItems = utils.$(".home_item");
+  const gItems = utils.$(".home_item .home_embed");
 
   const $dialog = document.getElementById("layout-dialog");
 
   const modalLayout = createLayout($dialog, {
-    children: [".home_item"],
+    children: [".home_embed"],
   });
 
   const closeModal = (e) => {
@@ -136,24 +136,25 @@ function initDialog() {
     modalLayout.update(({ root }) => {
       $dialog.close();
       $item = gItems.find((item) => item.classList.contains("is-open"));
-      $item.classList.remove("is-open"); // Makes the clicked element visible again
-      $item.focus(); // Focus to the closed element to preserve the keyboard navigation flow
+      $item.classList.remove("is-open");
+      $item.focus();
     });
   };
 
   const openModal = (e) => {
     const $target = e.target;
-    const $item = $target.closest(".home_item");
+    const $item = $target.closest(".home_embed") || $target.closest(".home_item")?.querySelector(".home_embed");
+    if (!$item) return;
     const $clone = $item.cloneNode(true);
-    $dialog.innerHTML = ""; // Make sure old clones are removed from the modal before adding a new one
-    $dialog.appendChild($clone); // Append the clicked element clone to the modal
+    $dialog.innerHTML = "";
+    $dialog.appendChild($clone);
     modalLayout.update(
       () => {
-        $dialog.showModal(); // Open the modal
-        $item.classList.add("is-open"); // Hide the clicked element
+        $dialog.showModal();
+        $item.classList.add("is-open");
       },
       {
-        duration: $item.dataset.duration, // Custom duration depending of the button clicked
+        duration: $item.dataset.duration,
       },
     );
   };
