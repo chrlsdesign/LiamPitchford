@@ -125,6 +125,10 @@ export function initHome({ playSharedIntro = false } = {}) {
 function initDialog() {
   const gItems = utils.$(".home_item .home_embed");
 
+  gItems.forEach(($el, i) => {
+    $el.setAttribute("data-layout-id", `home-embed-${i}`);
+  });
+
   const $dialog = document.getElementById("layout-dialog");
 
   const modalLayout = createLayout($dialog, {
