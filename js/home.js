@@ -1,4 +1,4 @@
-import { animate, cubicBezier, createLayout, onScroll } from "animejs";
+import { animate, cubicBezier, createLayout, onScroll, utils } from "animejs";
 import Lenis from "lenis";
 import { playSharedIntroIfPresent } from "./intro.js";
 
@@ -117,11 +117,53 @@ export function initHome({ playSharedIntro = false } = {}) {
     });
   });
 
+  initDialog();
   /* Gallery Zoom */
-  destroyGalleryZoom = initGalleryZoom();
+  //destroyGalleryZoom = initGalleryZoom();
 }
 
-function initGalleryZoom() {
+function initDialog() {
+  const gItems = utils.$(".home_item");
+
+  const $dialog = document.getElementById("layout-dialog");
+
+  const modalLayout = createLayout($dialog, {
+    children: [".home_item"],
+  });
+
+  const closeModal = (e) => {
+    let $item;
+    modalLayout.update(({ root }) => {
+      $dialog.close();
+      $item = buttons.find((item) => item.classList.contains("is-open"));
+      $item.classList.remove("is-open"); // Makes the clicked element visible again
+      $item.focus(); // Focus to the closed element to preserve the keyboard navigation flow
+    });
+  };
+
+  const openModal = (e) => {
+    const $target = e.target;
+    const $item = $target.closest(".home_item");
+    const $clone = $item.cloneNode(true);
+    $dialog.innerHTML = ""; // Make sure old clones are removed from the modal before adding a new one
+    $dialog.appendChild($clone); // Append the clicked element clone to the modal
+    modalLayout.update(
+      () => {
+        $dialog.showModal(); // Open the modal
+        $item.classList.add("is-open"); // Hide the clicked element
+      },
+      {
+        duration: $item.dataset.duration, // Custom duration depending of the button clicked
+      },
+    );
+  };
+
+  gItems.forEach(($gItem) => $gItem.addEventListener("click", openModal));
+  $dialog.addEventListener("cancel", closeModal);
+  $dialog.addEventListener("click", closeModal);
+}
+
+/* function initGalleryZoom() {
   const allItems = [...document.querySelectorAll("[data-zoom-item]")];
   if (!allItems.length) return null;
 
@@ -299,7 +341,7 @@ function initGalleryZoom() {
     fullImg.style.transform = `translate(${curTx}px,${curTy}px)`;
   }
 
-  function zoomIn(cx, cy) {
+  /* function zoomIn(cx, cy) {
     isZoomed = true;
     zoomWrap.style.cursor = "none";
     fullImg.style.transition =
@@ -314,9 +356,9 @@ function initGalleryZoom() {
       -(fy * zoomedH - window.innerHeight / 2),
     );
     setTimeout(() => (fullImg.style.transition = ""), 360);
-  }
+  } */
 
-  function zoomOut(instant) {
+/* function zoomOut(instant) {
     isZoomed = false;
     zoomWrap.style.cursor = "zoom-in";
     if (!instant)
@@ -328,10 +370,9 @@ function initGalleryZoom() {
     curTx = 0;
     curTy = 0;
     if (!instant) setTimeout(() => (fullImg.style.transition = ""), 360);
-  }
+  } */
 
-  // ── Mouse pan (desktop) ───────────────────────────────────────
-  overlay.addEventListener(
+/* overlay.addEventListener(
     "mousemove",
     (e) => {
       if (!isZoomed || isMobile) return;
@@ -351,18 +392,18 @@ function initGalleryZoom() {
   });
   zoomWrap.addEventListener("mousemove", () => (mouseMoved = true), {
     signal: sig,
-  });
-  zoomWrap.addEventListener(
+  }); */
+/* zoomWrap.addEventListener(
     "click",
     (e) => {
       if (mouseMoved && isZoomed) return;
       isZoomed ? zoomOut(false) : zoomIn(e.clientX, e.clientY);
     },
     { signal: sig },
-  );
+  ); */
 
-  // ── Touch drag (mobile) ───────────────────────────────────────
-  let tSX = 0,
+// ── Touch drag (mobile) ───────────────────────────────────────
+/* let tSX = 0,
     tSY = 0,
     tLX = 0,
     tLY = 0,
@@ -458,7 +499,7 @@ function initGalleryZoom() {
   elPrev?.addEventListener("click", () => navigate(-1), { signal: sig });
   elNext?.addEventListener("click", () => navigate(1), { signal: sig });
 
-  document.addEventListener(
+  /* document.addEventListener(
     "keydown",
     (e) => {
       if (!overlay.classList.contains("is-open")) return;
@@ -478,17 +519,17 @@ function initGalleryZoom() {
       setBaseSize();
     },
     { signal: sig },
-  );
+  ); */
 
-  return () => {
+/* return () => {
     closeOverlay();
     ac.abort();
     if (mRAF) cancelAnimationFrame(mRAF);
     fullImg.remove();
     modalLayout.revert();
     thumbEls.forEach((el) => el.removeAttribute("data-layout-id"));
-  };
-}
+  }; 
+} */
 
 function resetScrollReveal() {
   // revert each observer
