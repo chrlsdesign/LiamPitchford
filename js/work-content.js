@@ -3,7 +3,12 @@ import { playSharedIntroIfPresent } from "./intro.js";
 
 const WORK_CONTENT_INTRO_CLASSES = [".content_title", ".content_desc p"];
 
+let activeSplits = [];
+
 function collectWorkContentWordSplits() {
+  activeSplits.forEach((s) => s.revert());
+  activeSplits = [];
+
   const spduration = 1000;
   const spstagger = 10;
   const blocks = [];
@@ -11,11 +16,17 @@ function collectWorkContentWordSplits() {
   WORK_CONTENT_INTRO_CLASSES.forEach((cls) => {
     utils.$(cls).forEach((el) => {
       const split = splitText(el, { words: { wrap: "clip" } });
+      activeSplits.push(split);
       blocks.push({ split, spduration, spstagger });
     });
   });
 
   return blocks;
+}
+
+export function destroyWorkContent() {
+  activeSplits.forEach((s) => s.revert());
+  activeSplits = [];
 }
 
 function setWorkContentWordsHidden(blocks) {

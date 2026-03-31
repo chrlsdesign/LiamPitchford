@@ -15,7 +15,12 @@ const ABOUT_INTRO_CLASSES = [
   ".about_social",
 ];
 
+let activeSplits = [];
+
 function collectAboutWordSplits() {
+  activeSplits.forEach((s) => s.revert());
+  activeSplits = [];
+
   const spduration = 1000;
   const spstagger = 10;
   let aboutPDuration = 0;
@@ -24,6 +29,7 @@ function collectAboutWordSplits() {
   ABOUT_INTRO_CLASSES.forEach((cls) => {
     utils.$(cls).forEach((el) => {
       const split = splitText(el, { words: { wrap: "clip" } });
+      activeSplits.push(split);
       const wordCount = split.words.length;
       const totalDuration = spduration + spstagger * wordCount;
 
@@ -39,6 +45,11 @@ function collectAboutWordSplits() {
   });
 
   return blocks;
+}
+
+export function destroyAbout() {
+  activeSplits.forEach((s) => s.revert());
+  activeSplits = [];
 }
 
 function setAboutWordsHidden(blocks) {
