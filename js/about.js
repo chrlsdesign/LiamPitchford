@@ -8,56 +8,51 @@ import {
 } from "animejs";
 import { playSharedIntroIfPresent } from "./intro.js";
 
-const ABOUT_LINE_CLASSES = [".about_p"];
-const ABOUT_WORD_CLASSES = [".about_work", ".about_text", ".about_social"];
+const ABOUT_INTRO_CLASSES = [
+  ".about_p",
+  ".about_work",
+  ".about_text",
+  ".about_social",
+];
 
-function collectAboutSplits(container) {
+function collectAboutWordSplits(container) {
   const spduration = 1000;
-  const wordStagger = 10;
-  const lineStagger = 80;
+  const spstagger = 10;
   let aboutPDuration = 0;
   const blocks = [];
 
-  ABOUT_LINE_CLASSES.forEach((cls) => {
+  ABOUT_INTRO_CLASSES.forEach((cls) => {
     container.querySelectorAll(cls).forEach((el) => {
-      const split = splitText(el, { lines: { wrap: "clip" } });
-      const lineCount = split.lines.length;
-      const totalDuration = spduration + lineStagger * lineCount;
+      const split = splitText(el, { words: { wrap: "clip" } });
+      const wordCount = split.words.length;
+      const totalDuration = spduration + spstagger * wordCount;
 
       if (cls === ".about_p") {
         aboutPDuration = totalDuration;
       }
 
-      blocks.push({ targets: split.lines, offset: 0, spduration, spstagger: lineStagger });
-    });
-  });
-
-  ABOUT_WORD_CLASSES.forEach((cls) => {
-    container.querySelectorAll(cls).forEach((el) => {
-      const split = splitText(el, { words: { wrap: "clip" } });
-
       const offset =
         cls === ".about_text" || cls === ".about_social" ? aboutPDuration : 0;
 
-      blocks.push({ targets: split.words, offset, spduration, spstagger: wordStagger });
+      blocks.push({ split, offset, spduration, spstagger });
     });
   });
 
   return blocks;
 }
 
-function setAboutHidden(blocks) {
-  blocks.forEach(({ targets }) => {
-    animate(targets, { y: "100%", duration: 0 });
+function setAboutWordsHidden(blocks) {
+  blocks.forEach(({ split }) => {
+    animate(split.words, { y: "100%", duration: 0 });
   });
 }
 
 function runAboutPageIntro(blocks) {
   const ab_tl = createTimeline();
 
-  blocks.forEach(({ targets, offset, spduration, spstagger }) => {
+  blocks.forEach(({ split, offset, spduration, spstagger }) => {
     ab_tl.add(
-      targets,
+      split.words,
       {
         y: ["100%", "0%"],
         duration: spduration,
@@ -72,8 +67,8 @@ function runAboutPageIntro(blocks) {
 }
 
 export function initAbout({ playSharedIntro = false, content = document } = {}) {
-  const blocks = collectAboutSplits(content);
-  setAboutHidden(blocks);
+  const blocks = collectAboutWordSplits(content);
+  setAboutWordsHidden(blocks);
 
   if (playSharedIntro) {
     playSharedIntroIfPresent().then(() => runAboutPageIntro(blocks));
