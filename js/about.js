@@ -77,7 +77,7 @@ export function initAbout({ playSharedIntro = false, content = document } = {}) 
   }
 
   const wrapper = content.querySelector(".section.about");
-  const blob = content.querySelector(".i-blob");
+  const blob = content.querySelector(".i-blob") || document.querySelector(".i-blob");
   if (!wrapper || !blob) return;
 
   const animatable = createAnimatable(blob, {
