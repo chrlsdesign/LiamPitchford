@@ -66,7 +66,10 @@ function runAboutPageIntro(blocks) {
   ab_tl.init();
 }
 
-export function initAbout({ playSharedIntro = false, content = document } = {}) {
+export function initAbout({
+  playSharedIntro = false,
+  content = document,
+} = {}) {
   const blocks = collectAboutWordSplits(content);
   setAboutWordsHidden(blocks);
 
@@ -77,8 +80,11 @@ export function initAbout({ playSharedIntro = false, content = document } = {}) 
   }
 
   const wrapper = content.querySelector(".section.about");
-  const blob = content.querySelector(".i-blob") || document.querySelector(".i-blob");
+  const blob =
+    content.querySelector(".i-blob") || document.querySelector(".i-blob");
   if (!wrapper || !blob) return;
+
+  console.log(wrapper, blob);
 
   const animatable = createAnimatable(blob, {
     x: { duration: 800, ease: "out(3)" },
