@@ -1,24 +1,24 @@
-import { animate, createTimeline, splitText, stagger, utils } from "animejs";
+import { animate, createTimeline, cubicBezier, onScroll, splitText, stagger } from "animejs";
 import { playSharedIntroIfPresent } from "./intro.js";
 
 const WORK_CONTENT_WORD_CLASSES = [".content_title"];
 const WORK_CONTENT_LINE_CLASSES = [".content_desc p"];
 
-function collectWorkContentSplits() {
+function collectWorkContentSplits(container) {
   const spduration = 1000;
   const wordStagger = 10;
   const lineStagger = 80;
   const blocks = [];
 
   WORK_CONTENT_WORD_CLASSES.forEach((cls) => {
-    utils.$(cls).forEach((el) => {
+    container.querySelectorAll(cls).forEach((el) => {
       const split = splitText(el, { words: { wrap: "clip" } });
       blocks.push({ targets: split.words, spduration, spstagger: wordStagger });
     });
   });
 
   WORK_CONTENT_LINE_CLASSES.forEach((cls) => {
-    utils.$(cls).forEach((el) => {
+    container.querySelectorAll(cls).forEach((el) => {
       const split = splitText(el, { lines: { wrap: "clip" } });
       blocks.push({ targets: split.lines, spduration, spstagger: lineStagger });
     });
@@ -52,8 +52,46 @@ function runWorkContentPageIntro(blocks) {
   wc_tl.init();
 }
 
-export function initWorkContent({ playSharedIntro = false } = {}) {
-  const blocks = collectWorkContentSplits();
+const BLUR_START = "blur(20px)";
+const BLUR_END = "blur(0px)";
+
+let scrollObservers = [];
+const played = new Set();
+
+function initMediaBlurReveal(container) {
+  const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
+  const mediaEls = container.querySelectorAll("img:not(.content_next--list img), video:not(.content_next--list video)");
+
+  mediaEls.forEach((el) => {
+    animate(el, { filter: BLUR_START, duration: 0 });
+
+    const observer = onScroll({
+      target: el,
+      repeat: false,
+      onEnter: () => {
+        if (played.has(el)) return;
+        played.add(el);
+        animate(el, { filter: [BLUR_START, BLUR_END], duration: 750, ease: cubicEase });
+      },
+      onEnterBackward: () => {
+        if (played.has(el)) return;
+        played.add(el);
+        animate(el, { filter: [BLUR_START, BLUR_END], duration: 750, ease: cubicEase });
+      },
+    });
+
+    scrollObservers.push(observer);
+  });
+}
+
+export function destroyWorkContent() {
+  scrollObservers.forEach((o) => o.revert());
+  scrollObservers = [];
+  played.clear();
+}
+
+export function initWorkContent({ playSharedIntro = false, content = document } = {}) {
+  const blocks = collectWorkContentSplits(content);
   setWorkContentHidden(blocks);
 
   if (playSharedIntro) {
@@ -62,7 +100,9 @@ export function initWorkContent({ playSharedIntro = false } = {}) {
     runWorkContentPageIntro(blocks);
   }
 
-  const items = document.querySelectorAll(
+  initMediaBlurReveal(content);
+
+  const items = content.querySelectorAll(
     ".content_next--list .content_next--item",
   );
   const total = items.length;
@@ -76,7 +116,7 @@ export function initWorkContent({ playSharedIntro = false } = {}) {
     }
   });
 
-  document.querySelectorAll("video").forEach((video) => {
+  content.querySelectorAll("video").forEach((video) => {
     video.muted = true;
     video.playsInline = true;
     video.loop = true;

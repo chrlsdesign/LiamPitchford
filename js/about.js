@@ -11,7 +11,7 @@ import { playSharedIntroIfPresent } from "./intro.js";
 const ABOUT_LINE_CLASSES = [".about_p"];
 const ABOUT_WORD_CLASSES = [".about_work", ".about_text", ".about_social"];
 
-function collectAboutSplits() {
+function collectAboutSplits(container) {
   const spduration = 1000;
   const wordStagger = 10;
   const lineStagger = 80;
@@ -19,7 +19,7 @@ function collectAboutSplits() {
   const blocks = [];
 
   ABOUT_LINE_CLASSES.forEach((cls) => {
-    utils.$(cls).forEach((el) => {
+    container.querySelectorAll(cls).forEach((el) => {
       const split = splitText(el, { lines: { wrap: "clip" } });
       const lineCount = split.lines.length;
       const totalDuration = spduration + lineStagger * lineCount;
@@ -33,7 +33,7 @@ function collectAboutSplits() {
   });
 
   ABOUT_WORD_CLASSES.forEach((cls) => {
-    utils.$(cls).forEach((el) => {
+    container.querySelectorAll(cls).forEach((el) => {
       const split = splitText(el, { words: { wrap: "clip" } });
 
       const offset =
@@ -71,8 +71,8 @@ function runAboutPageIntro(blocks) {
   ab_tl.init();
 }
 
-export function initAbout({ playSharedIntro = false } = {}) {
-  const blocks = collectAboutSplits();
+export function initAbout({ playSharedIntro = false, content = document } = {}) {
+  const blocks = collectAboutSplits(content);
   setAboutHidden(blocks);
 
   if (playSharedIntro) {
@@ -81,8 +81,8 @@ export function initAbout({ playSharedIntro = false } = {}) {
     runAboutPageIntro(blocks);
   }
 
-  const wrapper = document.querySelector(".section.about");
-  const blob = document.querySelector(".i-blob");
+  const wrapper = content.querySelector(".section.about");
+  const blob = content.querySelector(".i-blob");
   if (!wrapper || !blob) return;
 
   const animatable = createAnimatable(blob, {

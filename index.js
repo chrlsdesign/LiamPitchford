@@ -2,7 +2,7 @@ import { Core, Transition, Renderer } from "@unseenco/taxi";
 import { initHome, destroyHome } from "./js/home.js";
 import { initAbout } from "./js/about.js";
 import { initWork } from "./js/work.js";
-import { initWorkContent } from "./js/work-content.js";
+import { initWorkContent, destroyWorkContent } from "./js/work-content.js";
 
 /** 1 = first paint after full page load / refresh; 2+ = Taxi swaps (same JS session). */
 let taxiContentEnterCount = 0;
@@ -84,20 +84,23 @@ class DefaultRenderer extends Renderer {
     const isWorkContent = wi !== -1 && wi < segs.length - 1;
     const isWorkList = wi !== -1 && wi === segs.length - 1;
 
+    const content = this.content;
+
     if (isHome) {
-      initHome({ playSharedIntro });
+      initHome({ playSharedIntro, content });
     }
     if (isAbout) {
-      initAbout({ playSharedIntro });
+      initAbout({ playSharedIntro, content });
     }
     if (isWorkContent) {
-      initWorkContent({ playSharedIntro });
+      initWorkContent({ playSharedIntro, content });
     } else if (isWorkList) {
-      initWork({ playSharedIntro });
+      initWork({ playSharedIntro, content });
     }
   }
 
   onLeaveCompleted() {
+    destroyWorkContent();
     const { segs } = routeSegments(window.location.pathname);
     if (isHomeSegments(segs)) destroyHome();
   }

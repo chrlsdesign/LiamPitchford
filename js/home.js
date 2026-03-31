@@ -54,7 +54,7 @@ function initScrollReveal(cubicEase) {
   });
 }
 
-export function initHome({ playSharedIntro = false } = {}) {
+export function initHome({ playSharedIntro = false, content = document } = {}) {
   //Lenis goes first
   lenis = new Lenis({
     infinite: true,

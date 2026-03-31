@@ -3,13 +3,13 @@ import { playSharedIntroIfPresent } from "./intro.js";
 
 const WORK_INTRO_CLASSES = [".work_title"];
 
-function collectWorkWordSplits() {
+function collectWorkWordSplits(container) {
   const spduration = 1000;
   const spstagger = 10;
   const blocks = [];
 
   WORK_INTRO_CLASSES.forEach((cls) => {
-    utils.$(cls).forEach((el) => {
+    container.querySelectorAll(cls).forEach((el) => {
       const split = splitText(el, { words: { wrap: "clip" } });
       blocks.push({ split, spduration, spstagger });
     });
@@ -43,8 +43,8 @@ function runWorkPageIntro(blocks) {
   wr_tl.init();
 }
 
-export function initWork({ playSharedIntro = false } = {}) {
-  const blocks = collectWorkWordSplits();
+export function initWork({ playSharedIntro = false, content = document } = {}) {
+  const blocks = collectWorkWordSplits(content);
   setWorkWordsHidden(blocks);
 
   if (playSharedIntro) {
@@ -55,7 +55,7 @@ export function initWork({ playSharedIntro = false } = {}) {
 
   const controller = new AbortController();
   const { signal } = controller;
-  const workItems = document.querySelectorAll(".work_item");
+  const workItems = content.querySelectorAll(".work_item");
   let activeItem = null;
 
   /* const filters = document.querySelectorAll(
