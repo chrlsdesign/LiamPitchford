@@ -7,9 +7,10 @@ function collectWorkContentWordSplits(container) {
   const spduration = 1000;
   const spstagger = 10;
   const blocks = [];
+  const root = container.querySelector(".content_title") ? container : document;
 
   WORK_CONTENT_INTRO_CLASSES.forEach((cls) => {
-    container.querySelectorAll(cls).forEach((el) => {
+    root.querySelectorAll(cls).forEach((el) => {
       const split = splitText(el, { words: { wrap: "clip" } });
       blocks.push({ split, spduration, spstagger });
     });
@@ -51,7 +52,8 @@ const played = new Set();
 
 function initMediaBlurReveal(container) {
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
-  const mediaEls = container.querySelectorAll("img:not(.content_next--list img), video:not(.content_next--list video)");
+  const root = container.querySelector("img, video") ? container : document;
+  const mediaEls = root.querySelectorAll("img:not(.content_next--list img), video:not(.content_next--list video)");
 
   mediaEls.forEach((el) => {
     animate(el, { filter: BLUR_START, duration: 0 });
@@ -93,7 +95,8 @@ export function initWorkContent({ playSharedIntro = false, content = document } 
 
   initMediaBlurReveal(content);
 
-  const items = content.querySelectorAll(
+  const wcRoot = content.querySelector(".content_next--list") ? content : document;
+  const items = wcRoot.querySelectorAll(
     ".content_next--list .content_next--item",
   );
   const total = items.length;
@@ -107,7 +110,7 @@ export function initWorkContent({ playSharedIntro = false, content = document } 
     }
   });
 
-  content.querySelectorAll("video").forEach((video) => {
+  wcRoot.querySelectorAll("video").forEach((video) => {
     video.muted = true;
     video.playsInline = true;
     video.loop = true;

@@ -20,9 +20,10 @@ function collectAboutWordSplits(container) {
   const spstagger = 10;
   let aboutPDuration = 0;
   const blocks = [];
+  const root = container.querySelector(".about_p") ? container : document;
 
   ABOUT_INTRO_CLASSES.forEach((cls) => {
-    container.querySelectorAll(cls).forEach((el) => {
+    root.querySelectorAll(cls).forEach((el) => {
       const split = splitText(el, { words: { wrap: "clip" } });
       const wordCount = split.words.length;
       const totalDuration = spduration + spstagger * wordCount;
@@ -79,12 +80,12 @@ export function initAbout({
     runAboutPageIntro(blocks);
   }
 
-  const wrapper = content.querySelector(".section.about");
+  const wrapper =
+    content.querySelector(".section.about") ||
+    document.querySelector(".section.about");
   const blob =
     content.querySelector(".i-blob") || document.querySelector(".i-blob");
   if (!wrapper || !blob) return;
-
-  console.log(wrapper, blob);
 
   const animatable = createAnimatable(blob, {
     x: { duration: 800, ease: "out(3)" },

@@ -7,9 +7,10 @@ function collectWorkWordSplits(container) {
   const spduration = 1000;
   const spstagger = 10;
   const blocks = [];
+  const root = container.querySelector(".work_title") ? container : document;
 
   WORK_INTRO_CLASSES.forEach((cls) => {
-    container.querySelectorAll(cls).forEach((el) => {
+    root.querySelectorAll(cls).forEach((el) => {
       const split = splitText(el, { words: { wrap: "clip" } });
       blocks.push({ split, spduration, spstagger });
     });
