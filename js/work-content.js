@@ -1,46 +1,44 @@
 import { animate, createTimeline, splitText, stagger, utils } from "animejs";
 import { playSharedIntroIfPresent } from "./intro.js";
 
-const WORK_CONTENT_INTRO_CLASSES = [".content_title", ".content_desc p"];
+const WORK_CONTENT_WORD_CLASSES = [".content_title"];
+const WORK_CONTENT_LINE_CLASSES = [".content_desc p"];
 
-let activeSplits = [];
-
-function collectWorkContentWordSplits() {
-  activeSplits.forEach((s) => s.revert());
-  activeSplits = [];
-
+function collectWorkContentSplits() {
   const spduration = 1000;
-  const spstagger = 10;
+  const wordStagger = 10;
+  const lineStagger = 80;
   const blocks = [];
 
-  WORK_CONTENT_INTRO_CLASSES.forEach((cls) => {
+  WORK_CONTENT_WORD_CLASSES.forEach((cls) => {
     utils.$(cls).forEach((el) => {
       const split = splitText(el, { words: { wrap: "clip" } });
-      activeSplits.push(split);
-      blocks.push({ split, spduration, spstagger });
+      blocks.push({ targets: split.words, spduration, spstagger: wordStagger });
+    });
+  });
+
+  WORK_CONTENT_LINE_CLASSES.forEach((cls) => {
+    utils.$(cls).forEach((el) => {
+      const split = splitText(el, { lines: { wrap: "clip" } });
+      blocks.push({ targets: split.lines, spduration, spstagger: lineStagger });
     });
   });
 
   return blocks;
 }
 
-export function destroyWorkContent() {
-  activeSplits.forEach((s) => s.revert());
-  activeSplits = [];
-}
-
-function setWorkContentWordsHidden(blocks) {
-  blocks.forEach(({ split }) => {
-    animate(split.words, { y: "100%", duration: 0 });
+function setWorkContentHidden(blocks) {
+  blocks.forEach(({ targets }) => {
+    animate(targets, { y: "100%", duration: 0 });
   });
 }
 
 function runWorkContentPageIntro(blocks) {
   const wc_tl = createTimeline();
 
-  blocks.forEach(({ split, spduration, spstagger }) => {
+  blocks.forEach(({ targets, spduration, spstagger }) => {
     wc_tl.add(
-      split.words,
+      targets,
       {
         y: ["100%", "0%"],
         duration: spduration,
@@ -55,8 +53,8 @@ function runWorkContentPageIntro(blocks) {
 }
 
 export function initWorkContent({ playSharedIntro = false } = {}) {
-  const blocks = collectWorkContentWordSplits();
-  setWorkContentWordsHidden(blocks);
+  const blocks = collectWorkContentSplits();
+  setWorkContentHidden(blocks);
 
   if (playSharedIntro) {
     playSharedIntroIfPresent().then(() => runWorkContentPageIntro(blocks));

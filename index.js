@@ -1,8 +1,8 @@
 import { Core, Transition, Renderer } from "@unseenco/taxi";
 import { initHome, destroyHome } from "./js/home.js";
-import { initAbout, destroyAbout } from "./js/about.js";
-import { initWork, destroyWork } from "./js/work.js";
-import { initWorkContent, destroyWorkContent } from "./js/work-content.js";
+import { initAbout } from "./js/about.js";
+import { initWork } from "./js/work.js";
+import { initWorkContent } from "./js/work-content.js";
 
 /** 1 = first paint after full page load / refresh; 2+ = Taxi swaps (same JS session). */
 let taxiContentEnterCount = 0;
@@ -60,16 +60,6 @@ class FadeTransition extends Transition {
   }
 }
 
-let currentPage = null;
-
-function destroyCurrentPage() {
-  if (currentPage === "home") destroyHome();
-  if (currentPage === "about") destroyAbout();
-  if (currentPage === "work") destroyWork();
-  if (currentPage === "workContent") destroyWorkContent();
-  currentPage = null;
-}
-
 class DefaultRenderer extends Renderer {
   initialLoad() {
     this.onEnter();
@@ -95,22 +85,21 @@ class DefaultRenderer extends Renderer {
     const isWorkList = wi !== -1 && wi === segs.length - 1;
 
     if (isHome) {
-      currentPage = "home";
       initHome({ playSharedIntro });
-    } else if (isAbout) {
-      currentPage = "about";
+    }
+    if (isAbout) {
       initAbout({ playSharedIntro });
-    } else if (isWorkContent) {
-      currentPage = "workContent";
+    }
+    if (isWorkContent) {
       initWorkContent({ playSharedIntro });
     } else if (isWorkList) {
-      currentPage = "work";
       initWork({ playSharedIntro });
     }
   }
 
-  onLeave() {
-    destroyCurrentPage();
+  onLeaveCompleted() {
+    const { segs } = routeSegments(window.location.pathname);
+    if (isHomeSegments(segs)) destroyHome();
   }
 }
 
