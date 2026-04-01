@@ -1,4 +1,11 @@
-import { animate, createTimeline, cubicBezier, onScroll, splitText, stagger } from "animejs";
+import {
+  animate,
+  createTimeline,
+  cubicBezier,
+  onScroll,
+  splitText,
+  stagger,
+} from "animejs";
 import { playSharedIntroIfPresent } from "./intro.js";
 
 const WORK_CONTENT_INTRO_CLASSES = [".content_title", ".content_desc p"];
@@ -11,7 +18,7 @@ function collectWorkContentWordSplits(container) {
 
   WORK_CONTENT_INTRO_CLASSES.forEach((cls) => {
     root.querySelectorAll(cls).forEach((el) => {
-      const split = splitText(el, { words: { wrap: "clip" } });
+      const split = splitText(el, { lines: { wrap: "clip" }, words: true });
       blocks.push({ split, spduration, spstagger });
     });
   });
@@ -53,7 +60,9 @@ const played = new Set();
 function initMediaBlurReveal(container) {
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
   const root = container.querySelector("img, video") ? container : document;
-  const mediaEls = root.querySelectorAll("img:not(.content_next--list img), video:not(.content_next--list video)");
+  const mediaEls = root.querySelectorAll(
+    "img:not(.content_next--list img), video:not(.content_next--list video)",
+  );
 
   mediaEls.forEach((el) => {
     animate(el, { filter: BLUR_START, duration: 0 });
@@ -64,12 +73,20 @@ function initMediaBlurReveal(container) {
       onEnter: () => {
         if (played.has(el)) return;
         played.add(el);
-        animate(el, { filter: [BLUR_START, BLUR_END], duration: 750, ease: cubicEase });
+        animate(el, {
+          filter: [BLUR_START, BLUR_END],
+          duration: 750,
+          ease: cubicEase,
+        });
       },
       onEnterBackward: () => {
         if (played.has(el)) return;
         played.add(el);
-        animate(el, { filter: [BLUR_START, BLUR_END], duration: 750, ease: cubicEase });
+        animate(el, {
+          filter: [BLUR_START, BLUR_END],
+          duration: 750,
+          ease: cubicEase,
+        });
       },
     });
 
@@ -83,7 +100,10 @@ export function destroyWorkContent() {
   played.clear();
 }
 
-export function initWorkContent({ playSharedIntro = false, content = document } = {}) {
+export function initWorkContent({
+  playSharedIntro = false,
+  content = document,
+} = {}) {
   const blocks = collectWorkContentWordSplits(content);
   setWorkContentWordsHidden(blocks);
 
@@ -95,7 +115,9 @@ export function initWorkContent({ playSharedIntro = false, content = document } 
 
   initMediaBlurReveal(content);
 
-  const wcRoot = content.querySelector(".content_next--list") ? content : document;
+  const wcRoot = content.querySelector(".content_next--list")
+    ? content
+    : document;
   const items = wcRoot.querySelectorAll(
     ".content_next--list .content_next--item",
   );

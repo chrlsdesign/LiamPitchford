@@ -24,7 +24,7 @@ function collectAboutWordSplits(container) {
 
   ABOUT_INTRO_CLASSES.forEach((cls) => {
     root.querySelectorAll(cls).forEach((el) => {
-      const split = splitText(el, { words: { wrap: "clip" } });
+      const split = splitText(el, { lines: { wrap: "clip" }, words: true });
       const wordCount = split.words.length;
       const totalDuration = spduration + spstagger * wordCount;
 
@@ -63,8 +63,6 @@ function runAboutPageIntro(blocks) {
       0,
     );
   });
-
-  ab_tl.init();
 }
 
 export function initAbout({
