@@ -14,14 +14,12 @@ function collectAboutSplits(container) {
 
   ABOUT_INTRO_CLASSES.forEach((cls) => {
     root.querySelectorAll(cls).forEach((el) => {
+      el.style.visibility = "hidden";
       const split = splitText(el, {
         lines: { wrap: "clip" },
         words: true,
       });
-      split.words.forEach((w) => {
-        w.style.transform = "translateY(100%)";
-      });
-      splits.push({ split, cls });
+      splits.push({ split, cls, el });
     });
   });
 
@@ -39,18 +37,19 @@ function runAboutPageIntro(splits) {
     }
   });
 
-  splits.forEach(({ split, cls }) => {
+  splits.forEach(({ split, cls, el }) => {
     const offset =
       cls === ".about_text" || cls === ".about_social" ? aboutPDuration : 0;
 
-    split.addEffect(({ words }) =>
-      animate(words, {
-        y: ["100%", "0%"],
+    split.addEffect(({ words }) => {
+      el.style.visibility = "";
+      return animate(words, {
+        y: [{ to: ["100%", "0%"] }],
         duration: spduration,
         ease: "out(3)",
         delay: stagger(spstagger, { start: offset }),
-      }),
-    );
+      });
+    });
   });
 }
 
