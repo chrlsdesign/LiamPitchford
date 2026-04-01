@@ -25,11 +25,10 @@ function collectAboutSplits(container) {
   return splits;
 }
 
-function setupAboutIntro(splits) {
+function runAboutPageIntro(splits) {
   const spduration = 750;
   const spstagger = 50;
   let aboutPDuration = 0;
-  const anims = [];
 
   splits.forEach(({ split, cls }) => {
     if (cls === ".about_p") {
@@ -41,21 +40,15 @@ function setupAboutIntro(splits) {
     const offset =
       cls === ".about_text" || cls === ".about_social" ? aboutPDuration : 0;
 
-    split.addEffect(({ words }) => {
-      const anim = animate(words, {
+    split.addEffect(({ words }) =>
+      animate(words, {
         y: [{ to: ["100%", "0%"] }],
         duration: spduration,
         ease: "out(3)",
         delay: stagger(spstagger, { start: offset }),
-        autoplay: false,
-      });
-      anim.init();
-      anims.push(anim);
-      return anim;
-    });
+      }),
+    );
   });
-
-  return anims;
 }
 
 export function initAbout({
@@ -63,12 +56,11 @@ export function initAbout({
   content = document,
 } = {}) {
   const splits = collectAboutSplits(content);
-  const anims = setupAboutIntro(splits);
 
   if (playSharedIntro) {
-    playSharedIntroIfPresent().then(() => anims.forEach((a) => a.play()));
+    playSharedIntroIfPresent().then(() => runAboutPageIntro(splits));
   } else {
-    anims.forEach((a) => a.play());
+    runAboutPageIntro(splits);
   }
 
   const wrapper =
