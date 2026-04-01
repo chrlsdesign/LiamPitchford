@@ -1,10 +1,8 @@
 import {
   animate,
   createAnimatable,
-  createTimeline,
   splitText,
   stagger,
-  utils,
 } from "animejs";
 import { playSharedIntroIfPresent } from "./intro.js";
 
@@ -15,52 +13,51 @@ const ABOUT_INTRO_CLASSES = [
   ".about_social",
 ];
 
-function collectAboutWordSplits(container) {
-  const spduration = 1000;
-  const spstagger = 10;
-  let aboutPDuration = 0;
-  const blocks = [];
+function collectAboutSplits(container) {
   const root = container.querySelector(".about_p") ? container : document;
+  const splits = [];
 
   ABOUT_INTRO_CLASSES.forEach((cls) => {
     root.querySelectorAll(cls).forEach((el) => {
-      const split = splitText(el, { lines: { wrap: "clip" }, words: true });
-      const wordCount = split.words.length;
-      const totalDuration = spduration + spstagger * wordCount;
-
-      if (cls === ".about_p") {
-        aboutPDuration = totalDuration;
-      }
-
-      const offset =
-        cls === ".about_text" || cls === ".about_social" ? aboutPDuration : 0;
-
-      blocks.push({ split, offset, spduration, spstagger });
+      const split = splitText(el, {
+        lines: { wrap: "clip" },
+        words: true,
+      });
+      splits.push({ split, cls });
     });
   });
 
-  return blocks;
+  return splits;
 }
 
-function setAboutWordsHidden(blocks) {
-  blocks.forEach(({ split }) => {
+function setAboutWordsHidden(splits) {
+  splits.forEach(({ split }) => {
     animate(split.words, { y: "100%", duration: 0 });
   });
 }
 
-function runAboutPageIntro(blocks) {
-  const ab_tl = createTimeline();
+function runAboutPageIntro(splits) {
+  const spduration = 750;
+  const spstagger = 50;
+  let aboutPDuration = 0;
 
-  blocks.forEach(({ split, offset, spduration, spstagger }) => {
-    ab_tl.add(
-      split.words,
-      {
-        y: ["100%", "0%"],
+  splits.forEach(({ split, cls }) => {
+    if (cls === ".about_p") {
+      aboutPDuration = spduration + spstagger * split.words.length;
+    }
+  });
+
+  splits.forEach(({ split, cls }) => {
+    const offset =
+      cls === ".about_text" || cls === ".about_social" ? aboutPDuration : 0;
+
+    split.addEffect(({ words }) =>
+      animate(words, {
+        y: [{ to: ["100%", "0%"] }],
         duration: spduration,
         ease: "out(3)",
         delay: stagger(spstagger, { start: offset }),
-      },
-      0,
+      }),
     );
   });
 }
@@ -69,13 +66,13 @@ export function initAbout({
   playSharedIntro = false,
   content = document,
 } = {}) {
-  const blocks = collectAboutWordSplits(content);
-  setAboutWordsHidden(blocks);
+  const splits = collectAboutSplits(content);
+  setAboutWordsHidden(splits);
 
   if (playSharedIntro) {
-    playSharedIntroIfPresent().then(() => runAboutPageIntro(blocks));
+    playSharedIntroIfPresent().then(() => runAboutPageIntro(splits));
   } else {
-    runAboutPageIntro(blocks);
+    runAboutPageIntro(splits);
   }
 
   const wrapper =
