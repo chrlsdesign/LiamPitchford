@@ -1,9 +1,4 @@
-import {
-  animate,
-  createAnimatable,
-  splitText,
-  stagger,
-} from "animejs";
+import { animate, createAnimatable, splitText, stagger } from "animejs";
 import { playSharedIntroIfPresent } from "./intro.js";
 
 const ABOUT_INTRO_CLASSES = [
@@ -46,15 +41,16 @@ function setupAboutIntro(splits) {
     const offset =
       cls === ".about_text" || cls === ".about_social" ? aboutPDuration : 0;
 
-    const anim = animate(split.words, {
-      y: [{ to: ["100%", "0%"] }],
-      duration: spduration,
-      ease: "out(3)",
-      delay: stagger(spstagger, { start: offset }),
-      autoplay: false,
+    split.addEffect(({ words }) => {
+      animate(words, {
+        y: [{ to: ["100%", "0%"] }],
+        duration: spduration,
+        ease: "out(3)",
+        delay: stagger(spstagger, { start: offset }),
+        autoplay: false,
+      });
     });
-    anim.init();
-    anims.push(anim);
+    split.init();
   });
 
   return anims;
