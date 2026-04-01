@@ -18,6 +18,9 @@ function collectAboutSplits(container) {
         lines: { wrap: "clip" },
         words: true,
       });
+      split.words.forEach((w) => {
+        w.style.transform = "translateY(100%)";
+      });
       splits.push({ split, cls });
     });
   });
@@ -42,7 +45,7 @@ function runAboutPageIntro(splits) {
 
     split.addEffect(({ words }) =>
       animate(words, {
-        y: [{ to: ["100%", "0%"] }],
+        y: ["100%", "0%"],
         duration: spduration,
         ease: "out(3)",
         delay: stagger(spstagger, { start: offset }),
