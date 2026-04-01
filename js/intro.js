@@ -1,4 +1,9 @@
-import { animate, createAnimatable, createTimeline, cubicBezier } from "animejs";
+import {
+  animate,
+  createAnimatable,
+  createTimeline,
+  cubicBezier,
+} from "animejs";
 
 const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
@@ -58,7 +63,7 @@ export function playHomeIntro() {
           { signal },
         );
 
-        introEl.addEventListener(
+        document.body.addEventListener(
           "mousemove",
           (e) => {
             const { width, height, left, top } = bounds;
@@ -88,11 +93,11 @@ export function playHomeIntro() {
         passive: true,
         signal,
       });
-      window.addEventListener(
-        "touchmove",
-        dismissIntro,
-        { once: true, passive: true, signal },
-      );
+      window.addEventListener("touchmove", dismissIntro, {
+        once: true,
+        passive: true,
+        signal,
+      });
     });
   });
 }
