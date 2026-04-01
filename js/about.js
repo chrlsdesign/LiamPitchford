@@ -42,15 +42,17 @@ function setupAboutIntro(splits) {
       cls === ".about_text" || cls === ".about_social" ? aboutPDuration : 0;
 
     split.addEffect(({ words }) => {
-      animate(words, {
+      const anim = animate(words, {
         y: [{ to: ["100%", "0%"] }],
         duration: spduration,
         ease: "out(3)",
         delay: stagger(spstagger, { start: offset }),
         autoplay: false,
       });
+      anim.init();
+      anims.push(anim);
+      return anim;
     });
-    split.init();
   });
 
   return anims;
