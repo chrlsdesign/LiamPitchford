@@ -46,16 +46,12 @@ function setupAboutIntro(splits) {
     const offset =
       cls === ".about_text" || cls === ".about_social" ? aboutPDuration : 0;
 
-    let anim;
-    split.addEffect(({ words }) => {
-      anim = animate(words, {
-        y: [{ to: ["100%", "0%"] }],
-        duration: spduration,
-        ease: "out(3)",
-        delay: stagger(spstagger, { start: offset }),
-        autoplay: false,
-      });
-      return anim;
+    const anim = animate(split.words, {
+      y: [{ to: ["100%", "0%"] }],
+      duration: spduration,
+      ease: "out(3)",
+      delay: stagger(spstagger, { start: offset }),
+      autoplay: false,
     });
     anim.init();
     anims.push(anim);
