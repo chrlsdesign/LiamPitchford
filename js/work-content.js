@@ -1,6 +1,5 @@
 import {
   animate,
-  createTimeline,
   cubicBezier,
   onScroll,
   splitText,
@@ -10,45 +9,39 @@ import { playSharedIntroIfPresent } from "./intro.js";
 
 const WORK_CONTENT_INTRO_CLASSES = [".content_title", ".content_desc p"];
 
-function collectWorkContentWordSplits(container) {
-  const spduration = 1000;
-  const spstagger = 10;
-  const blocks = [];
+function collectWorkContentSplits(container) {
   const root = container.querySelector(".content_title") ? container : document;
+  const splits = [];
 
   WORK_CONTENT_INTRO_CLASSES.forEach((cls) => {
     root.querySelectorAll(cls).forEach((el) => {
-      const split = splitText(el, { lines: { wrap: "clip" }, words: true });
-      blocks.push({ split, spduration, spstagger });
+      el.style.visibility = "hidden";
+      const split = splitText(el, {
+        lines: { wrap: "clip" },
+        words: true,
+      });
+      splits.push({ split, cls, el });
     });
   });
 
-  return blocks;
+  return splits;
 }
 
-function setWorkContentWordsHidden(blocks) {
-  blocks.forEach(({ split }) => {
-    animate(split.words, { y: "100%", duration: 0 });
-  });
-}
+function runWorkContentPageIntro(splits) {
+  const spduration = 750;
+  const spstagger = 50;
 
-function runWorkContentPageIntro(blocks) {
-  const wc_tl = createTimeline();
-
-  blocks.forEach(({ split, spduration, spstagger }) => {
-    wc_tl.add(
-      split.words,
-      {
-        y: ["100%", "0%"],
+  splits.forEach(({ split, el }) => {
+    split.addEffect(({ words }) => {
+      el.style.visibility = "";
+      return animate(words, {
+        y: [{ to: ["100%", "0%"] }],
         duration: spduration,
         ease: "out(3)",
         delay: stagger(spstagger, { start: 0 }),
-      },
-      0,
-    );
+      });
+    });
   });
-
-  wc_tl.init();
 }
 
 const BLUR_START = "blur(20px)";
@@ -104,13 +97,12 @@ export function initWorkContent({
   playSharedIntro = false,
   content = document,
 } = {}) {
-  const blocks = collectWorkContentWordSplits(content);
-  setWorkContentWordsHidden(blocks);
+  const splits = collectWorkContentSplits(content);
 
   if (playSharedIntro) {
-    playSharedIntroIfPresent().then(() => runWorkContentPageIntro(blocks));
+    playSharedIntroIfPresent().then(() => runWorkContentPageIntro(splits));
   } else {
-    runWorkContentPageIntro(blocks);
+    runWorkContentPageIntro(splits);
   }
 
   initMediaBlurReveal(content);
