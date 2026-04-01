@@ -1,26 +1,27 @@
-import { createTimeline, cubicBezier } from "animejs";
+import { animate, createAnimatable, createTimeline, cubicBezier } from "animejs";
 
 const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
-/**
- * Full-screen intro (.intro / .intro_title / .intro_center).
- * On non-home templates, include the same intro block in your global layout or this no-ops.
- */
 export function playHomeIntro() {
-  const tl = createTimeline({
-    defaults: { duration: 700, ease: cubicEase },
-  });
+  const introEl = document.querySelector(".intro");
+  if (!introEl) return Promise.resolve();
 
-  tl.add(
-    ".intro_title",
-    {
-      translateX: (el, i) => (i === 0 ? ["100%", "0%"] : ["-100%", "0%"]),
-      duration: 500,
-      delay: 250,
-    },
-    0,
-  )
-    .add(
+  const circle = document.querySelector(".intro-circle");
+
+  return new Promise((resolve) => {
+    const tl = createTimeline({
+      defaults: { duration: 700, ease: cubicEase },
+    });
+
+    tl.add(
+      ".intro_title",
+      {
+        translateX: (el, i) => (i === 0 ? ["100%", "0%"] : ["-100%", "0%"]),
+        duration: 500,
+        delay: 250,
+      },
+      0,
+    ).add(
       ".intro_center",
       {
         translateX: (el, i) => {
@@ -36,10 +37,64 @@ export function playHomeIntro() {
         },
       },
       750,
-    )
-    .add(".intro", { opacity: 0, duration: 250 });
+    );
 
-  return tl.then();
+    tl.then(() => {
+      document.body.style.overflow = "hidden";
+
+      const ac = new AbortController();
+      const { signal } = ac;
+
+      if (circle) {
+        const animatable = createAnimatable(circle, {
+          x: { duration: 800, ease: "out(3)" },
+          y: { duration: 800, ease: "out(3)" },
+        });
+
+        let bounds = introEl.getBoundingClientRect();
+        window.addEventListener(
+          "resize",
+          () => (bounds = introEl.getBoundingClientRect()),
+          { signal },
+        );
+
+        introEl.addEventListener(
+          "mousemove",
+          (e) => {
+            const { width, height, left, top } = bounds;
+            const x = e.clientX - left - width / 2;
+            const y = e.clientY - top - height / 2;
+            animatable.x(x);
+            animatable.y(y);
+          },
+          { signal },
+        );
+      }
+
+      const dismissIntro = () => {
+        ac.abort();
+        animate(introEl, {
+          opacity: 0,
+          duration: 250,
+          ease: cubicEase,
+        }).then(() => {
+          document.body.style.overflow = "";
+          resolve();
+        });
+      };
+
+      window.addEventListener("wheel", dismissIntro, {
+        once: true,
+        passive: true,
+        signal,
+      });
+      window.addEventListener(
+        "touchmove",
+        dismissIntro,
+        { once: true, passive: true, signal },
+      );
+    });
+  });
 }
 
 /** Use before page-specific entrance animations; skips if intro markup is absent. */
