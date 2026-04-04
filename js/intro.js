@@ -120,7 +120,7 @@ export function playSharedIntroIfPresent(opts) {
 const INTRO_PAGE_CONFIG = {
   home: { opacity: 0.5, flowerY: "50%", fill: "#EE7F31" },
   about: { opacity: 1, flowerY: "50%", fill: "#EE7F31" },
-  work: { opacity: 1, flowerY: "-50%", fill: "white" },
+  work: { opacity: 1, flowerY: "-50%", fill: "#ffffff" },
   workContent: { opacity: 0, flowerY: "50%", fill: "#EE7F31" },
 };
 
@@ -156,7 +156,7 @@ export function updateIntroForPage(page) {
 
   if (paths.length) {
     animate(paths, {
-      fill: config.fill || defaultFill,
+      fill: { to: config.fill || defaultFill },
       duration: 400,
       ease: cubicEase,
     });
