@@ -117,12 +117,16 @@ export function playSharedIntroIfPresent(opts) {
   return playHomeIntro(opts);
 }
 
+const DEFAULT_FLOWER_Y = "50%";
+
 const INTRO_PAGE_CONFIG = {
-  home: { opacity: 0.5, flowerY: "50%", fill: "#EE7F31" },
-  about: { opacity: 1, flowerY: "50%", fill: "#EE7F31" },
+  home: { opacity: 0.5, flowerY: DEFAULT_FLOWER_Y, fill: "#EE7F31" },
+  about: { opacity: 1, flowerY: DEFAULT_FLOWER_Y, fill: "#EE7F31" },
   work: { opacity: 1, flowerY: "-50%", fill: "#ffffff" },
-  workContent: { opacity: 0, flowerY: "50%", fill: "#EE7F31" },
+  workContent: { opacity: 0, flowerY: DEFAULT_FLOWER_Y, fill: "#EE7F31" },
 };
+
+let lastFlowerY = DEFAULT_FLOWER_Y;
 
 let defaultFill = null;
 
@@ -146,12 +150,13 @@ export function updateIntroForPage(page) {
     ease: cubicEase,
   });
 
-  if (flowerGroup) {
+  if (flowerGroup && config.flowerY !== lastFlowerY) {
     animate(flowerGroup, {
       translateY: config.flowerY,
       duration: 1500,
       ease: cubicEase,
     });
+    lastFlowerY = config.flowerY;
   }
 
   if (paths.length) {
