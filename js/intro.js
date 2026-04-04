@@ -118,10 +118,10 @@ export function playSharedIntroIfPresent(opts) {
 }
 
 const INTRO_PAGE_CONFIG = {
-  home: { opacity: 0.5, flowerY: "50%", fill: "#F7FF00" },
-  about: { opacity: 1, flowerY: "50%", fill: "#F7FF00" },
+  home: { opacity: 0.5, flowerY: "50%", fill: "#EE7F31" },
+  about: { opacity: 1, flowerY: "50%", fill: "#EE7F31" },
   work: { opacity: 1, flowerY: "-50%", fill: "white" },
-  workContent: { opacity: 0, flowerY: "50%", fill: "#F7FF00" },
+  workContent: { opacity: 0, flowerY: "50%", fill: "#EE7F31" },
 };
 
 let defaultFill = null;
@@ -134,7 +134,7 @@ export function updateIntroForPage(page) {
   if (!config) return;
 
   const flowerGroup = introEl.querySelector(".flower_group");
-  const paths = introEl.querySelectorAll(".flower_group svg.front");
+  const paths = introEl.querySelectorAll(".flower_group .front");
 
   if (defaultFill === null && paths.length) {
     defaultFill = getComputedStyle(paths[0]).fill;
