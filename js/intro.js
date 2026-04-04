@@ -85,7 +85,7 @@ export function playHomeIntro({ lenis = null } = {}) {
 
       const dismissIntro = () => {
         ac.abort();
-        animate(".intro_center", {
+        animate(".intro_center, .intro_btm, .inter", {
           opacity: 0,
           duration: 250,
           ease: cubicEase,
@@ -149,7 +149,7 @@ export function updateIntroForPage(page) {
   if (flowerGroup) {
     animate(flowerGroup, {
       translateY: config.flowerY,
-      duration: 400,
+      duration: 1500,
       ease: cubicEase,
     });
   }
