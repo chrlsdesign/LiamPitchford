@@ -116,3 +116,49 @@ export function playSharedIntroIfPresent(opts) {
   if (!document.querySelector(".intro")) return Promise.resolve();
   return playHomeIntro(opts);
 }
+
+const INTRO_PAGE_CONFIG = {
+  home: { opacity: 0.5, flowerY: "0%", fill: null },
+  about: { opacity: 1, flowerY: "50%", fill: null },
+  work: { opacity: 1, flowerY: "-50%", fill: "white" },
+  workContent: { opacity: 0, flowerY: "0%", fill: null },
+};
+
+let defaultFill = null;
+
+export function updateIntroForPage(page) {
+  const introEl = document.querySelector(".intro");
+  if (!introEl) return;
+
+  const config = INTRO_PAGE_CONFIG[page];
+  if (!config) return;
+
+  const flowerGroup = introEl.querySelector(".flower_group");
+  const paths = introEl.querySelectorAll(".flower_group svg path");
+
+  if (defaultFill === null && paths.length) {
+    defaultFill = getComputedStyle(paths[0]).fill;
+  }
+
+  animate(introEl, {
+    opacity: config.opacity,
+    duration: 400,
+    ease: cubicEase,
+  });
+
+  if (flowerGroup) {
+    animate(flowerGroup, {
+      translateY: config.flowerY,
+      duration: 400,
+      ease: cubicEase,
+    });
+  }
+
+  if (paths.length) {
+    animate(paths, {
+      fill: config.fill || defaultFill,
+      duration: 400,
+      ease: cubicEase,
+    });
+  }
+}

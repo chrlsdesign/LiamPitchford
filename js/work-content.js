@@ -5,7 +5,7 @@ import {
   splitText,
   stagger,
 } from "animejs";
-import { playSharedIntroIfPresent } from "./intro.js";
+import { playSharedIntroIfPresent, updateIntroForPage } from "./intro.js";
 
 const WORK_CONTENT_INTRO_CLASSES = [".content_title", ".content_desc p"];
 
@@ -96,11 +96,15 @@ export function destroyWorkContent() {
 export function initWorkContent({
   playSharedIntro = false,
   content = document,
+  pageKey = "workContent",
 } = {}) {
   const splits = collectWorkContentSplits(content);
 
   if (playSharedIntro) {
-    playSharedIntroIfPresent().then(() => runWorkContentPageIntro(splits));
+    playSharedIntroIfPresent().then(() => {
+      updateIntroForPage(pageKey);
+      runWorkContentPageIntro(splits);
+    });
   } else {
     runWorkContentPageIntro(splits);
   }

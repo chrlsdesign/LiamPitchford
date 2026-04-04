@@ -1,5 +1,5 @@
 import { animate, createTimeline, splitText, stagger, utils } from "animejs";
-import { playSharedIntroIfPresent } from "./intro.js";
+import { playSharedIntroIfPresent, updateIntroForPage } from "./intro.js";
 
 const WORK_INTRO_CLASSES = [".work_title"];
 
@@ -44,12 +44,15 @@ function runWorkPageIntro(blocks) {
   wr_tl.init();
 }
 
-export function initWork({ playSharedIntro = false, content = document } = {}) {
+export function initWork({ playSharedIntro = false, content = document, pageKey = "work" } = {}) {
   const blocks = collectWorkWordSplits(content);
   setWorkWordsHidden(blocks);
 
   if (playSharedIntro) {
-    playSharedIntroIfPresent().then(() => runWorkPageIntro(blocks));
+    playSharedIntroIfPresent().then(() => {
+      updateIntroForPage(pageKey);
+      runWorkPageIntro(blocks);
+    });
   } else {
     runWorkPageIntro(blocks);
   }

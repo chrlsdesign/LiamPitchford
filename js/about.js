@@ -1,5 +1,5 @@
 import { animate, createAnimatable, splitText, stagger } from "animejs";
-import { playSharedIntroIfPresent } from "./intro.js";
+import { playSharedIntroIfPresent, updateIntroForPage } from "./intro.js";
 
 const ABOUT_INTRO_CLASSES = [
   ".about_p",
@@ -56,11 +56,15 @@ function runAboutPageIntro(splits) {
 export function initAbout({
   playSharedIntro = false,
   content = document,
+  pageKey = "about",
 } = {}) {
   const splits = collectAboutSplits(content);
 
   if (playSharedIntro) {
-    playSharedIntroIfPresent().then(() => runAboutPageIntro(splits));
+    playSharedIntroIfPresent().then(() => {
+      updateIntroForPage(pageKey);
+      runAboutPageIntro(splits);
+    });
   } else {
     runAboutPageIntro(splits);
   }

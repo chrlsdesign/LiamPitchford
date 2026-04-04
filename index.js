@@ -3,6 +3,7 @@ import { initHome, destroyHome } from "./js/home.js";
 import { initAbout } from "./js/about.js";
 import { initWork } from "./js/work.js";
 import { initWorkContent, destroyWorkContent } from "./js/work-content.js";
+import { updateIntroForPage } from "./js/intro.js";
 
 /** 1 = first paint after full page load / refresh; 2+ = Taxi swaps (same JS session). */
 let taxiContentEnterCount = 0;
@@ -86,16 +87,25 @@ class DefaultRenderer extends Renderer {
 
     const content = this.content;
 
+    let pageKey = "home";
+    if (isAbout) pageKey = "about";
+    else if (isWorkContent) pageKey = "workContent";
+    else if (isWorkList) pageKey = "work";
+
+    if (!playSharedIntro) {
+      updateIntroForPage(pageKey);
+    }
+
     if (isHome) {
-      initHome({ playSharedIntro, content });
+      initHome({ playSharedIntro, content, pageKey });
     }
     if (isAbout) {
-      initAbout({ playSharedIntro, content });
+      initAbout({ playSharedIntro, content, pageKey });
     }
     if (isWorkContent) {
-      initWorkContent({ playSharedIntro, content });
+      initWorkContent({ playSharedIntro, content, pageKey });
     } else if (isWorkList) {
-      initWork({ playSharedIntro, content });
+      initWork({ playSharedIntro, content, pageKey });
     }
   }
 
