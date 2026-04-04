@@ -90,6 +90,7 @@ export function playHomeIntro({ lenis = null } = {}) {
           duration: 250,
           ease: cubicEase,
         }).then(() => {
+          introEl.style.zIndex = -1;
           document.body.style.overflow = "";
           if (lenis) lenis.start();
           resolve();
