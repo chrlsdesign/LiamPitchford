@@ -7,11 +7,11 @@ import {
 
 const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
-export function playHomeIntro() {
+export function playHomeIntro({ lenis = null } = {}) {
   const introEl = document.querySelector(".intro");
   if (!introEl) return Promise.resolve();
 
-  const circle = document.querySelector(".intro-circle");
+  const circle = document.querySelector(".inter");
 
   return new Promise((resolve) => {
     const tl = createTimeline({
@@ -46,6 +46,7 @@ export function playHomeIntro() {
 
     tl.then(() => {
       document.body.style.overflow = "hidden";
+      if (lenis) lenis.stop();
 
       const ac = new AbortController();
       const { signal } = ac;
@@ -66,6 +67,12 @@ export function playHomeIntro() {
         document.body.addEventListener(
           "mousemove",
           (e) => {
+            animate(circle, {
+              opacity: 1,
+              duration: 500,
+              ease: cubicEase,
+            });
+
             const { width, height, left, top } = bounds;
             const x = e.clientX - left - width / 2;
             const y = e.clientY - top - height / 2;
@@ -78,12 +85,13 @@ export function playHomeIntro() {
 
       const dismissIntro = () => {
         ac.abort();
-        animate(introEl, {
+        animate(".intro_center", {
           opacity: 0,
           duration: 250,
           ease: cubicEase,
         }).then(() => {
           document.body.style.overflow = "";
+          if (lenis) lenis.start();
           resolve();
         });
       };
@@ -103,7 +111,7 @@ export function playHomeIntro() {
 }
 
 /** Use before page-specific entrance animations; skips if intro markup is absent. */
-export function playSharedIntroIfPresent() {
+export function playSharedIntroIfPresent(opts) {
   if (!document.querySelector(".intro")) return Promise.resolve();
-  return playHomeIntro();
+  return playHomeIntro(opts);
 }

@@ -79,7 +79,7 @@ export function initHome({ playSharedIntro = false, content = document } = {}) {
   if (homeItems.length) setHomeItemsBlurred(homeItems);
 
   if (playSharedIntro) {
-    playSharedIntroIfPresent().then(() => initScrollReveal(cubicEase));
+    playSharedIntroIfPresent({ lenis }).then(() => initScrollReveal(cubicEase));
   } else {
     initScrollReveal(cubicEase);
   }
