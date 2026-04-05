@@ -8,6 +8,23 @@ const ABOUT_INTRO_CLASSES = [
   ".about_social",
 ];
 
+/**
+ * Double <br> must not be collapsed by splitText. Replacing innerHTML after split
+ * would detach word nodes and break addEffect, so we swap in a block spacer first
+ * and leave it in the DOM (same visual as <br><br> with typical line-height).
+ */
+const ABOUT_PARA_GAP =
+  '<span class="about-para-gap" style="display:block;height:1em" aria-hidden="true"></span>';
+
+function preserveAboutDoubleBreaks(el) {
+  const html = el.innerHTML;
+  const next = html.replace(
+    /<br\s*\/?>(?:\s|\u00a0)*<br\s*\/?>/gi,
+    ABOUT_PARA_GAP,
+  );
+  if (next !== html) el.innerHTML = next;
+}
+
 function collectAboutSplits(container) {
   const root = container.querySelector(".about_p") ? container : document;
   const splits = [];
@@ -15,6 +32,7 @@ function collectAboutSplits(container) {
   ABOUT_INTRO_CLASSES.forEach((cls) => {
     root.querySelectorAll(cls).forEach((el) => {
       el.style.visibility = "hidden";
+      if (cls === ".about_p") preserveAboutDoubleBreaks(el);
       const split = splitText(el, {
         lines: { wrap: "clip" },
         words: true,

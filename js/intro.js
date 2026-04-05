@@ -123,12 +123,31 @@ const INTRO_PAGE_CONFIG = {
   home: { opacity: 0.5, flowerY: DEFAULT_FLOWER_Y, fill: "#EE7F31" },
   about: { opacity: 1, flowerY: DEFAULT_FLOWER_Y, fill: "#EE7F31" },
   work: { opacity: 1, flowerY: "-50%", fill: "#ffffff" },
-  workContent: { opacity: 0, flowerY: DEFAULT_FLOWER_Y, fill: "#EE7F31" },
+  workContent: { opacity: 0, flowerY: "-50%", fill: "#EE7F31" },
 };
 
-let lastFlowerY = DEFAULT_FLOWER_Y;
-
 let defaultFill = null;
+
+function parseFlowerYPercent(value) {
+  const m = String(value).match(/^(-?[\d.]+)%$/);
+  return m ? parseFloat(m[1]) : null;
+}
+
+/** Current translateY as % of element height (CSS % resolves against self). */
+function readFlowerTranslateYPercent(el) {
+  const t = getComputedStyle(el).transform;
+  if (!t || t === "none") return 0;
+  const m = new DOMMatrixReadOnly(t);
+  const h = el.getBoundingClientRect().height || 1;
+  return (m.m42 / h) * 100;
+}
+
+function flowerYNeedsAnimation(el, targetY) {
+  const target = parseFlowerYPercent(targetY);
+  if (target == null) return true;
+  const current = readFlowerTranslateYPercent(el);
+  return Math.abs(current - target) > 0.75;
+}
 
 export function updateIntroForPage(page) {
   const introEl = document.querySelector(".intro");
@@ -150,13 +169,12 @@ export function updateIntroForPage(page) {
     ease: cubicEase,
   });
 
-  if (flowerGroup && config.flowerY !== lastFlowerY) {
+  if (flowerGroup && flowerYNeedsAnimation(flowerGroup, config.flowerY)) {
     animate(flowerGroup, {
       translateY: config.flowerY,
       duration: 1500,
       ease: cubicEase,
     });
-    lastFlowerY = config.flowerY;
   }
 
   if (paths.length) {
