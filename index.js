@@ -112,7 +112,8 @@ class DefaultRenderer extends Renderer {
   onLeaveCompleted() {
     destroyWorkContent();
     const { segs } = routeSegments(window.location.pathname);
-    if (isHomeSegments(segs)) destroyHome();
+    // Tear down Lenis when the *current* page is not home (leaving home, or any non-home route).
+    if (!isHomeSegments(segs)) destroyHome();
   }
 }
 

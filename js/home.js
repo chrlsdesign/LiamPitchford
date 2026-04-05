@@ -5,6 +5,7 @@ import { playSharedIntroIfPresent, updateIntroForPage } from "./intro.js";
 let scrollObservers = [];
 const played = new Set();
 let lenis = null;
+let lenisRafActive = false;
 let destroyGalleryZoom = null;
 
 const HOME_ITEM_BLUR_START = "blur(20px)";
@@ -63,7 +64,9 @@ export function initHome({ playSharedIntro = false, content = document, pageKey 
     touchMultiplier: 1.5,
   });
 
+  lenisRafActive = true;
   function raf(time) {
+    if (!lenisRafActive || !lenis) return;
     lenis.raf(time);
     requestAnimationFrame(raf);
   }
@@ -188,11 +191,15 @@ function resetScrollReveal() {
 }
 
 export function destroyHome() {
+  lenisRafActive = false;
   if (destroyGalleryZoom) {
     destroyGalleryZoom();
     destroyGalleryZoom = null;
   }
-  lenis.destroy();
+  if (lenis) {
+    lenis.destroy();
+    lenis = null;
+  }
   scrollObservers.forEach((observer) => observer.revert());
   scrollObservers = [];
   played.clear();
