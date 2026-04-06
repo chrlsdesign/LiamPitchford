@@ -12,6 +12,66 @@ const HOME_ITEM_BLUR_START = "blur(20px)";
 const HOME_ITEM_BLUR_END = "blur(0px)";
 const HOME_LIST_MODAL_BLUR = "blur(12px)";
 
+function lockModalScroll() {
+  if (lenis) lenis.stop();
+  document.documentElement.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
+}
+
+function unlockModalScroll() {
+  document.documentElement.style.overflow = "";
+  document.body.style.overflow = "";
+  if (lenis) lenis.start();
+}
+
+/**
+ * Sets `ratio` (width ÷ height) and inline `aspect-ratio` when dimensions are known.
+ * Cloned modal media keeps the same ratio. Webflow: img[ratio], video[ratio] { aspect-ratio: attr(ratio number); } where supported, or rely on the inline style we set.
+ */
+function applyMediaAspectRatio(media) {
+  const apply = () => {
+    let w;
+    let h;
+    if (media.tagName === "IMG") {
+      w = media.naturalWidth;
+      h = media.naturalHeight;
+    } else if (media.tagName === "VIDEO") {
+      w = media.videoWidth;
+      h = media.videoHeight;
+    } else {
+      return;
+    }
+    if (!w || !h) return;
+    const r = w / h;
+    const str = Number(r.toFixed(6)).toString();
+    media.setAttribute("ratio", str);
+    media.style.aspectRatio = str;
+  };
+
+  if (media.tagName === "IMG") {
+    if (media.complete && media.naturalWidth > 0) {
+      apply();
+    } else {
+      media.addEventListener("load", apply, { once: true });
+    }
+  } else if (media.tagName === "VIDEO") {
+    if (
+      media.readyState >= HTMLMediaElement.HAVE_METADATA &&
+      media.videoWidth > 0
+    ) {
+      apply();
+    } else {
+      media.addEventListener("loadedmetadata", apply, { once: true });
+    }
+  }
+}
+
+function initHomeEmbedMediaAspectRatios(root = document) {
+  root.querySelectorAll(".home_embed img, .home_embed video").forEach((el) => {
+    applyMediaAspectRatio(el);
+  });
+}
+
 function getHomeListItems() {
   const list = document.querySelector(".home_list");
   return list ? [...list.querySelectorAll(".home_item")] : [];
@@ -149,6 +209,8 @@ function initDialog() {
     }
   });
 
+  initHomeEmbedMediaAspectRatios();
+
   const $dialog = document.getElementById("layout-dialog");
 
   const modalLayout = createLayout($dialog, {
@@ -158,6 +220,7 @@ function initDialog() {
   let lastModalListDuration = 400;
 
   const closeModal = (e) => {
+    unlockModalScroll();
     const duration = lastModalListDuration;
     if (homeList) {
       animate(homeList, {
@@ -182,6 +245,7 @@ function initDialog() {
       $target.closest(".home_embed") ||
       $target.closest(".home_item")?.querySelector(".home_embed");
     if (!$item) return;
+    lockModalScroll();
     const duration = Number($item.dataset.duration) || 400;
     lastModalListDuration = duration;
     if (homeList) {
@@ -196,8 +260,9 @@ function initDialog() {
     const $clone = media ? media.cloneNode(true) : $item.cloneNode(true);
     $dialog.innerHTML = "";
     $dialog.appendChild($clone);
-    // showModal must run inside update(callback): FLIP needs oldState (dialog closed) vs newState (open).
-    // Webflow: avoid toggling visibility on the FLIP target; a closed <dialog> already hides content.
+    if ($clone.tagName === "IMG" || $clone.tagName === "VIDEO") {
+      applyMediaAspectRatio($clone);
+    }
     modalLayout.update(
       () => {
         $dialog.showModal();
@@ -230,6 +295,8 @@ function resetScrollReveal() {
 }
 
 export function destroyHome() {
+  document.documentElement.style.overflow = "";
+  document.body.style.overflow = "";
   lenisRafActive = false;
   if (destroyGalleryZoom) {
     destroyGalleryZoom();
