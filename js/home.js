@@ -139,8 +139,14 @@ function initDialog() {
 
   const gItems = utils.$(".home_item .home_embed");
 
-  gItems.forEach(($el, i) => {
-    $el.setAttribute("data-layout-id", `home-embed-${i}`);
+  gItems.forEach(($embed, i) => {
+    const id = `home-embed-${i}`;
+    const media = $embed.querySelector("img, video");
+    if (media) {
+      media.setAttribute("data-layout-id", id);
+    } else {
+      $embed.setAttribute("data-layout-id", id);
+    }
   });
 
   const $dialog = document.getElementById("layout-dialog");
@@ -186,12 +192,12 @@ function initDialog() {
         ease: cubicEase,
       });
     }
-    const $clone = $item.cloneNode(true);
+    const media = $item.querySelector("img, video");
+    const $clone = media ? media.cloneNode(true) : $item.cloneNode(true);
     $dialog.innerHTML = "";
     $dialog.appendChild($clone);
     // showModal must run inside update(callback): FLIP needs oldState (dialog closed) vs newState (open).
-    // Webflow: drop `.home_embed { visibility:hidden }` / `[open] { visibility:visible }` — a closed
-    // <dialog> already hides content; that toggle fights FLIP and reads jumpy when it flips with [open].
+    // Webflow: avoid toggling visibility on the FLIP target; a closed <dialog> already hides content.
     modalLayout.update(
       () => {
         $dialog.showModal();
