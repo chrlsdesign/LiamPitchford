@@ -10,6 +10,7 @@ let destroyGalleryZoom = null;
 
 const HOME_ITEM_BLUR_START = "blur(20px)";
 const HOME_ITEM_BLUR_END = "blur(0px)";
+const HOME_LIST_MODAL_BLUR = "blur(12px)";
 
 function getHomeListItems() {
   const list = document.querySelector(".home_list");
@@ -55,7 +56,11 @@ function initScrollReveal(cubicEase) {
   });
 }
 
-export function initHome({ playSharedIntro = false, content = document, pageKey = "home" } = {}) {
+export function initHome({
+  playSharedIntro = false,
+  content = document,
+  pageKey = "home",
+} = {}) {
   //Lenis goes first
   lenis = new Lenis({
     infinite: true,
@@ -129,6 +134,9 @@ export function initHome({ playSharedIntro = false, content = document, pageKey 
 }
 
 function initDialog() {
+  const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
+  const homeList = document.querySelector(".home_list");
+
   const gItems = utils.$(".home_item .home_embed");
 
   gItems.forEach(($el, i) => {
@@ -138,10 +146,21 @@ function initDialog() {
   const $dialog = document.getElementById("layout-dialog");
 
   const modalLayout = createLayout($dialog, {
-    children: [".home_embed"],
+    children: [".home_embed", "img", "video"],
   });
 
+  let lastModalListDuration = 400;
+
   const closeModal = (e) => {
+    const duration = lastModalListDuration;
+    if (homeList) {
+      animate(homeList, {
+        scale: 1,
+        filter: HOME_ITEM_BLUR_END,
+        duration,
+        ease: cubicEase,
+      });
+    }
     let $item;
     modalLayout.update(({ root }) => {
       $dialog.close();
@@ -157,6 +176,16 @@ function initDialog() {
       $target.closest(".home_embed") ||
       $target.closest(".home_item")?.querySelector(".home_embed");
     if (!$item) return;
+    const duration = Number($item.dataset.duration) || 400;
+    lastModalListDuration = duration;
+    if (homeList) {
+      animate(homeList, {
+        scale: 0.9,
+        filter: HOME_LIST_MODAL_BLUR,
+        duration,
+        ease: cubicEase,
+      });
+    }
     const $clone = $item.cloneNode(true);
     $dialog.innerHTML = "";
     $dialog.appendChild($clone);

@@ -69,8 +69,7 @@ export function playHomeIntro({ lenis = null } = {}) {
           (e) => {
             animate(circle, {
               opacity: 1,
-              duration: 500,
-              ease: cubicEase,
+              duration: 200,
             });
 
             const { width, height, left, top } = bounds;
