@@ -155,7 +155,7 @@ function initDialog() {
     const duration = lastModalListDuration;
     if (homeList) {
       animate(homeList, {
-        scale: 1,
+        opacity: 1,
         filter: HOME_ITEM_BLUR_END,
         duration,
         ease: cubicEase,
@@ -180,7 +180,7 @@ function initDialog() {
     lastModalListDuration = duration;
     if (homeList) {
       animate(homeList, {
-        scale: 0.9,
+        opacity: 0,
         filter: HOME_LIST_MODAL_BLUR,
         duration,
         ease: cubicEase,
@@ -189,6 +189,9 @@ function initDialog() {
     const $clone = $item.cloneNode(true);
     $dialog.innerHTML = "";
     $dialog.appendChild($clone);
+    // showModal must run inside update(callback): FLIP needs oldState (dialog closed) vs newState (open).
+    // Webflow: drop `.home_embed { visibility:hidden }` / `[open] { visibility:visible }` — a closed
+    // <dialog> already hides content; that toggle fights FLIP and reads jumpy when it flips with [open].
     modalLayout.update(
       () => {
         $dialog.showModal();
@@ -196,6 +199,7 @@ function initDialog() {
       },
       {
         duration: $item.dataset.duration,
+        ease: cubicEase,
       },
     );
   };
