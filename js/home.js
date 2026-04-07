@@ -145,6 +145,7 @@ export function initHome({
     target: intro,
     onLeaveForward: () => {
       intro.style.display = "none";
+      lenis.scrollTo(0, { immediate: true });
       // reinit lenis with infinite: true here
     },
   });
