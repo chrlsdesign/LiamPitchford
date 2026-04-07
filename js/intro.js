@@ -3,19 +3,35 @@ import {
   createAnimatable,
   createTimeline,
   cubicBezier,
+  onScroll,
+  Timeline,
 } from "animejs";
 
 const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
+/** Smoothness for ScrollObserver ↔ timeline sync (0–1). See https://animejs.com/documentation/events/onscroll/scrollobserver-synchronisation-modes/smooth-scroll */
+const INTRO_SCROLL_SYNC = 0.25;
+
+/** Clears scroll-linked intro scrub (ScrollObserver + timeline). */
+let introScrubCleanup = null;
+
+export function detachHomeIntroScrollScrub() {
+  introScrubCleanup?.();
+  introScrubCleanup = null;
+}
+
 /**
- * Homepage-only hook: runs after the opening timeline, during the interactive phase
- * (scroll locked, blob following cursor). Add experiments here.
+ * Homepage-only hook: runs after the opening timeline, when Lenis scrub phase begins.
  *
  * @param {object} ctx
  * @param {HTMLElement} ctx.introEl
  * @param {object|null} ctx.lenis
  * @param {HTMLElement|null} ctx.circle
  * @param {AbortSignal} ctx.signal
+ * @param {number} ctx.scrubPx — scroll distance that fully dismisses intro (synced with list padding)
+ * @param {HTMLElement|null} ctx.homeList
+ * @param {object|undefined} ctx.scrollObs — anime.js ScrollObserver from onScroll()
+ * @param {object|undefined} ctx.scrubTl — scroll-linked timeline
  */
 export function onHomeIntroInteractivePhase(ctx) {
   void ctx;
@@ -28,68 +44,101 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
   const circle = document.querySelector(".inter");
 
   return new Promise((resolve) => {
-    const tl = createTimeline({
+    if (isHome && lenis) {
+      lenis.stop();
+    }
+
+    const introTl = createTimeline({
       defaults: { duration: 700, ease: cubicEase },
     });
 
-    tl.add(
-      ".intro_title",
-      {
-        translateX: (el, i) => (i === 0 ? ["100%", "0%"] : ["-100%", "0%"]),
-        duration: 500,
-        delay: 250,
-      },
-      0,
-    ).add(
-      ".intro_center",
-      {
-        translateX: (el, i) => {
-          const rect = el.getBoundingClientRect();
-          const padding =
-            parseFloat(getComputedStyle(document.documentElement).fontSize) *
-            0.875;
-
-          if (i === 0) {
-            return -(rect.left - padding);
-          }
-          return window.innerWidth - rect.right - padding;
+    introTl
+      .add(
+        ".intro_title",
+        {
+          translateX: (el, i) => (i === 0 ? ["100%", "0%"] : ["-100%", "0%"]),
+          duration: 500,
+          delay: 250,
         },
-      },
-      750,
-    );
+        0,
+      )
+      .add(
+        ".intro_center",
+        {
+          translateX: (el, i) => {
+            const rect = el.getBoundingClientRect();
+            const padding =
+              parseFloat(getComputedStyle(document.documentElement).fontSize) *
+              0.875;
 
-    const finishIntro = (ac) => {
-      if (ac) ac.abort();
+            if (i === 0) {
+              return -(rect.left - padding);
+            }
+            return window.innerWidth - rect.right - padding;
+          },
+        },
+        750,
+      );
+
+    const finishIntroNonHome = () => {
       animate(".intro_center, .intro_btm, .inter", {
         opacity: 0,
         duration: 250,
         ease: cubicEase,
       }).then(() => {
-        introEl.style.zIndex = -1;
+        introEl.style.zIndex = "-1";
         document.body.style.overflow = "";
         if (lenis) lenis.start();
         resolve();
       });
     };
 
-    tl.then(() => {
+    introTl.then(() => {
       if (!isHome) {
-        finishIntro(null);
+        finishIntroNonHome();
         return;
       }
 
-      document.body.style.overflow = "hidden";
-      if (lenis) lenis.stop();
+      document.body.style.overflow = "";
+
+      const homeList = document.querySelector(".home_list");
+      const scrubPx = Math.max(
+        1,
+        window.innerHeight,
+        introEl.getBoundingClientRect().height,
+      );
 
       const ac = new AbortController();
       const { signal } = ac;
 
-      onHomeIntroInteractivePhase({
-        introEl,
-        lenis,
-        circle,
-        signal,
-      });
+      let scrubDone = false;
+
+      const finalizeIntroScrub = () => {
+        if (scrubDone) return;
+        scrubDone = true;
+        detachHomeIntroScrollScrub();
+        ac.abort();
+
+        introEl.style.transform = "";
+        introEl.style.visibility = "hidden";
+        introEl.style.pointerEvents = "none";
+        introEl.style.zIndex = "-1";
+        if (homeList) {
+          homeList.style.paddingTop = "0";
+        }
+
+        if (lenis) {
+          lenis.options.infinite = true;
+          lenis.resize();
+        }
+
+        animate(".intro_center, .intro_btm, .inter", {
+          opacity: 0,
+          duration: 0,
+        }).then(() => {
+          resolve();
+        });
+      };
 
       if (circle) {
         const animatable = createAnimatable(circle, {
@@ -122,18 +171,86 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
         );
       }
 
-      const dismissIntro = () => finishIntro(ac);
+      if (!lenis) {
+        const dismissFallback = () => {
+          ac.abort();
+          finishIntroNonHome();
+        };
+        window.addEventListener("wheel", dismissFallback, {
+          once: true,
+          passive: true,
+          signal,
+        });
+        window.addEventListener("touchmove", dismissFallback, {
+          once: true,
+          passive: true,
+          signal,
+        });
+        return;
+      }
 
-      window.addEventListener("wheel", dismissIntro, {
-        once: true,
-        passive: true,
-        signal,
+      if (homeList) {
+        homeList.style.paddingTop = `${scrubPx}px`;
+      }
+
+      const scrollObs = onScroll({
+        container: document.body,
+        target: document.documentElement,
+        enter: "start start",
+        leave: `start+=${scrubPx} start`,
+        sync: true,
+        onSyncComplete: () => finalizeIntroScrub(),
       });
-      window.addEventListener("touchmove", dismissIntro, {
-        once: true,
-        passive: true,
-        signal,
+
+      const scrubTl = new Timeline({
+        autoplay: scrollObs,
+        defaults: { ease: "linear" },
       });
+
+      scrubTl.add(
+        introEl,
+        {
+          translateY: ["0%", "-100%"],
+          duration: 1,
+          ease: "linear",
+        },
+        0,
+      );
+
+      if (homeList) {
+        scrubTl.add(
+          homeList,
+          {
+            paddingTop: [`${scrubPx}px`, "0px"],
+            duration: 1,
+            ease: "linear",
+          },
+          0,
+        );
+      }
+
+      introScrubCleanup = () => {
+        scrollObs.revert();
+        scrubTl.cancel();
+      };
+
+      scrubTl.init();
+      scrollObs.refresh();
+
+      onHomeIntroInteractivePhase({
+        introEl,
+        lenis,
+        circle,
+        signal,
+        scrubPx,
+        homeList,
+        scrollObs,
+        scrubTl,
+      });
+
+      lenis.resize();
+      lenis.scrollTo(0, { immediate: true });
+      lenis.start();
     });
   });
 }

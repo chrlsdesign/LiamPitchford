@@ -1,6 +1,10 @@
 import { animate, cubicBezier, createLayout, onScroll, utils } from "animejs";
 import Lenis from "lenis";
-import { playSharedIntroIfPresent, updateIntroForPage } from "./intro.js";
+import {
+  detachHomeIntroScrollScrub,
+  playSharedIntroIfPresent,
+  updateIntroForPage,
+} from "./intro.js";
 
 let scrollObservers = [];
 const played = new Set();
@@ -123,7 +127,7 @@ export function initHome({
 } = {}) {
   //Lenis goes first
   lenis = new Lenis({
-    infinite: true,
+    infinite: false,
     smoothTouch: true,
     syncTouch: true,
     touchMultiplier: 1.5,
@@ -138,6 +142,11 @@ export function initHome({
   requestAnimationFrame(raf);
 
   lenis.scrollTo(0, { immediate: true });
+
+  if (!playSharedIntro) {
+    lenis.options.infinite = true;
+    lenis.resize();
+  }
 
   //The rest starts here
 
@@ -295,6 +304,7 @@ function resetScrollReveal() {
 }
 
 export function destroyHome() {
+  detachHomeIntroScrollScrub();
   document.documentElement.style.overflow = "";
   document.body.style.overflow = "";
   lenisRafActive = false;
