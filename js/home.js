@@ -147,7 +147,7 @@ export function initHome({
   if (homeItems.length) setHomeItemsBlurred(homeItems);
 
   if (playSharedIntro) {
-    playSharedIntroIfPresent({ lenis }).then(() => {
+    playSharedIntroIfPresent({ lenis, isHome: true }).then(() => {
       updateIntroForPage(pageKey);
       initScrollReveal(cubicEase);
     });

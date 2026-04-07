@@ -7,7 +7,21 @@ import {
 
 const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
-export function playHomeIntro({ lenis = null } = {}) {
+/**
+ * Homepage-only hook: runs after the opening timeline, during the interactive phase
+ * (scroll locked, blob following cursor). Add experiments here.
+ *
+ * @param {object} ctx
+ * @param {HTMLElement} ctx.introEl
+ * @param {object|null} ctx.lenis
+ * @param {HTMLElement|null} ctx.circle
+ * @param {AbortSignal} ctx.signal
+ */
+export function onHomeIntroInteractivePhase(ctx) {
+  void ctx;
+}
+
+export function playHomeIntro({ lenis = null, isHome = false } = {}) {
   const introEl = document.querySelector(".intro");
   if (!introEl) return Promise.resolve();
 
@@ -44,12 +58,38 @@ export function playHomeIntro({ lenis = null } = {}) {
       750,
     );
 
+    const finishIntro = (ac) => {
+      if (ac) ac.abort();
+      animate(".intro_center, .intro_btm, .inter", {
+        opacity: 0,
+        duration: 250,
+        ease: cubicEase,
+      }).then(() => {
+        introEl.style.zIndex = -1;
+        document.body.style.overflow = "";
+        if (lenis) lenis.start();
+        resolve();
+      });
+    };
+
     tl.then(() => {
+      if (!isHome) {
+        finishIntro(null);
+        return;
+      }
+
       document.body.style.overflow = "hidden";
       if (lenis) lenis.stop();
 
       const ac = new AbortController();
       const { signal } = ac;
+
+      onHomeIntroInteractivePhase({
+        introEl,
+        lenis,
+        circle,
+        signal,
+      });
 
       if (circle) {
         const animatable = createAnimatable(circle, {
@@ -82,19 +122,7 @@ export function playHomeIntro({ lenis = null } = {}) {
         );
       }
 
-      const dismissIntro = () => {
-        ac.abort();
-        animate(".intro_center, .intro_btm, .inter", {
-          opacity: 0,
-          duration: 250,
-          ease: cubicEase,
-        }).then(() => {
-          introEl.style.zIndex = -1;
-          document.body.style.overflow = "";
-          if (lenis) lenis.start();
-          resolve();
-        });
-      };
+      const dismissIntro = () => finishIntro(ac);
 
       window.addEventListener("wheel", dismissIntro, {
         once: true,
@@ -110,7 +138,7 @@ export function playHomeIntro({ lenis = null } = {}) {
   });
 }
 
-/** Use before page-specific entrance animations; skips if intro markup is absent. */
+/** @param {{ lenis?: object | null, isHome?: boolean }} [opts] */
 export function playSharedIntroIfPresent(opts) {
   if (!document.querySelector(".intro")) return Promise.resolve();
   return playHomeIntro(opts);
