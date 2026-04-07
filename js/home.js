@@ -123,7 +123,7 @@ export function initHome({
 } = {}) {
   //Lenis goes first
   lenis = new Lenis({
-    infinite: true,
+    infinite: false,
     smoothTouch: true,
     syncTouch: true,
     touchMultiplier: 1.5,
@@ -140,6 +140,14 @@ export function initHome({
   lenis.scrollTo(0, { immediate: true });
 
   //The rest starts here
+  animate(".intro", {
+    display: "none",
+    autoplay: onScroll({
+      target: ".intro",
+      leave: "bottom top",
+      debug: true,
+    }),
+  });
 
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
