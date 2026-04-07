@@ -85,6 +85,12 @@ class DefaultRenderer extends Renderer {
     const isWorkContent = wi !== -1 && wi < segs.length - 1;
     const isWorkList = wi !== -1 && wi === segs.length - 1;
 
+    // Destruct Lenis as soon as we *enter* a non-home route. Relying only on
+    // onLeaveCompleted + pathname can miss on mobile (URL may still be "/" when the hook runs).
+    if (!isHome) {
+      destroyHome();
+    }
+
     const content = this.content;
 
     let pageKey = "home";

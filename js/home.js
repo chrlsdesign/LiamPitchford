@@ -303,6 +303,7 @@ export function destroyHome() {
     destroyGalleryZoom = null;
   }
   if (lenis) {
+    lenis.stop();
     lenis.destroy();
     lenis = null;
   }
