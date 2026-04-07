@@ -148,8 +148,8 @@ export function initHome({
       const pos = lenis.scroll;
       lenis.destroy();
 
-      lenis = new Lenis({ autoRaf: true, infinite: true });
-      lenis.scrollTo(pos, { immediate: true });
+      lenis = new Lenis({ infinite: true });
+      lenis.scrollTo(0, { immediate: true });
       // reinit lenis with infinite: true here
     },
   });
