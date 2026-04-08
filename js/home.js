@@ -145,12 +145,11 @@ export function initHome({
     target: intro,
     onLeaveForward: () => {
       intro.style.display = "none";
-      const pos = lenis.scroll;
-      lenis.destroy();
-
-      lenis = new Lenis({ infinite: true });
+      lenis.stop();
+      lenis.options.infinite = true;
+      lenis.resize();
       lenis.scrollTo(0, { immediate: true });
-      // reinit lenis with infinite: true here
+      requestAnimationFrame(() => lenis.start());
     },
   });
 
