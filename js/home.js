@@ -126,7 +126,7 @@ export function initHome({
     infinite: false,
     smoothTouch: true,
     syncTouch: true,
-    touchMultiplier: 1.5,
+    touchMultiplier: 1.25,
   });
 
   lenisRafActive = true;

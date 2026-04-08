@@ -41,6 +41,10 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
       if (isHome) {
         document.body.style.overflow = "";
         if (lenis) lenis.start();
+        animate(".intro_circle", {
+          opacity: 0.2,
+          duration: 250,
+        });
         resolve();
         return;
       }
@@ -68,7 +72,7 @@ export function playSharedIntroIfPresent(opts) {
 const DEFAULT_FLOWER_Y = "50%";
 
 const INTRO_PAGE_CONFIG = {
-  home: { opacity: 0.2, flowerY: DEFAULT_FLOWER_Y, fill: "#EE7F31" },
+  home: { opacity: 1, flowerY: DEFAULT_FLOWER_Y, fill: "#EE7F31" },
   about: { opacity: 1, flowerY: DEFAULT_FLOWER_Y, fill: "#EE7F31" },
   work: { opacity: 1, flowerY: "-50%", fill: "#ffffff" },
   workContent: { opacity: 0, flowerY: "-50%", fill: "#EE7F31" },
