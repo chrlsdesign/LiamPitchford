@@ -146,6 +146,7 @@ export function initHome({
     autoplay: onScroll({
       target: intro,
       sync: true,
+      enter: "top top",
       onLeaveForward: () => {
         intro.style.display = "none";
         lenis.stop();
