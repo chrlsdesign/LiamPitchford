@@ -2,7 +2,7 @@ import { animate, createTimeline, cubicBezier } from "animejs";
 
 const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
-export function playHomeIntro({ lenis = null } = {}) {
+export function playHomeIntro({ lenis = null, isHome = false } = {}) {
   const introEl = document.querySelector(".intro");
   if (!introEl) return Promise.resolve();
 
@@ -37,7 +37,14 @@ export function playHomeIntro({ lenis = null } = {}) {
       750,
     );
 
-    const finishIntro = () => {
+    tl.then(() => {
+      if (isHome) {
+        document.body.style.overflow = "";
+        if (lenis) lenis.start();
+        resolve();
+        return;
+      }
+
       animate(".intro_center, .intro_btm, .inter", {
         opacity: 0,
         duration: 250,
@@ -48,13 +55,11 @@ export function playHomeIntro({ lenis = null } = {}) {
         if (lenis) lenis.start();
         resolve();
       });
-    };
-
-    tl.then(() => finishIntro());
+    });
   });
 }
 
-/** @param {{ lenis?: object | null }} [opts] */
+/** @param {{ lenis?: object | null, isHome?: boolean }} [opts] */
 export function playSharedIntroIfPresent(opts) {
   if (!document.querySelector(".intro")) return Promise.resolve();
   return playHomeIntro(opts);
