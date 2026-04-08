@@ -141,16 +141,20 @@ export function initHome({
 
   //The rest starts here
   const intro = utils.$(".intro")[0];
-  onScroll({
-    target: intro,
-    onLeaveForward: () => {
-      intro.style.display = "none";
-      lenis.stop();
-      lenis.options.infinite = true;
-      lenis.resize();
-      lenis.scrollTo(0, { immediate: true });
-      requestAnimationFrame(() => lenis.start());
-    },
+  animate(intro, {
+    height: "0vh",
+    autoplay: onScroll({
+      target: intro,
+      sync: true,
+      onLeaveForward: () => {
+        intro.style.display = "none";
+        lenis.stop();
+        lenis.options.infinite = true;
+        lenis.resize();
+        lenis.scrollTo(0, { immediate: true });
+        requestAnimationFrame(() => lenis.start());
+      },
+    }),
   });
 
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);

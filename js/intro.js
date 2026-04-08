@@ -1,8 +1,15 @@
-import { animate, createTimeline, cubicBezier } from "animejs";
+import { animate, createAnimatable, createTimeline, cubicBezier } from "animejs";
 
 const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
+let introInterAc = null;
+
 export function playHomeIntro({ lenis = null, isHome = false } = {}) {
+  if (introInterAc) {
+    introInterAc.abort();
+    introInterAc = null;
+  }
+
   const introEl = document.querySelector(".intro");
   if (!introEl) return Promise.resolve();
 
@@ -41,23 +48,59 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
       if (isHome) {
         document.body.style.overflow = "";
         if (lenis) lenis.start();
-        animate(".intro_circle", {
-          opacity: 0.2,
+        animate(".intro_circle", { opacity: 0.2, duration: 250 });
+        animate(".intro_center, .intro_btm, .inter", {
+          opacity: 0,
           duration: 250,
+          ease: cubicEase,
         });
         resolve();
         return;
       }
 
-      animate(".intro_center, .intro_btm, .inter", {
-        opacity: 0,
-        duration: 250,
-        ease: cubicEase,
-      }).then(() => {
-        introEl.style.zIndex = "-1";
-        document.body.style.overflow = "";
-        if (lenis) lenis.start();
-        resolve();
+      // Non-home: enable .inter mousemove, wait for scroll to dismiss
+      const ac = new AbortController();
+      introInterAc = ac;
+
+      const inter = document.querySelector(".inter");
+      if (inter) {
+        const animatable = createAnimatable(inter, {
+          x: { duration: 600, ease: "out(3)" },
+          y: { duration: 600, ease: "out(3)" },
+        });
+        document.addEventListener(
+          "mousemove",
+          (e) => {
+            animatable.x(e.clientX - inter.offsetWidth / 2);
+            animatable.y(e.clientY - inter.offsetHeight / 2);
+          },
+          { signal: ac.signal },
+        );
+      }
+
+      document.body.style.overflow = "";
+
+      const dismiss = () => {
+        ac.abort();
+        introInterAc = null;
+        animate(".intro_center, .intro_btm, .inter", {
+          opacity: 0,
+          duration: 250,
+          ease: cubicEase,
+        }).then(() => {
+          introEl.style.zIndex = "-1";
+          if (lenis) lenis.start();
+          resolve();
+        });
+      };
+
+      window.addEventListener("wheel", dismiss, {
+        once: true,
+        signal: ac.signal,
+      });
+      window.addEventListener("touchmove", dismiss, {
+        once: true,
+        signal: ac.signal,
       });
     });
   });
