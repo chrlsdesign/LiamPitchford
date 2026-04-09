@@ -145,14 +145,16 @@ export function initHome({
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
   if (playSharedIntro) {
-    const introObs = onScroll({ target: homeList, sync: true });
+    const scrollThres = document.querySelector(".scroll-thres");
+    const introObs = onScroll({ target: scrollThres, sync: true });
     animate(homeList, { y: [window.innerHeight, 0], autoplay: introObs });
     animate(".intro_center, .intro_btm, .inter", { opacity: 0, autoplay: introObs });
 
     onScroll({
-      target: homeList,
+      target: scrollThres,
       onLeaveForward: function handler(self) {
         self.revert();
+        if (scrollThres) scrollThres.remove();
         animate(".nav", { translateY: "0%", duration: 400, ease: cubicEase });
         lenis.stop();
         lenis.options.infinite = true;
@@ -162,6 +164,9 @@ export function initHome({
       },
     });
   } else {
+    const scrollThres = document.querySelector(".scroll-thres");
+    if (scrollThres) scrollThres.remove();
+  
     if (homeList) animate(homeList, { y: 0, duration: 0 });
     lenis.options.infinite = true;
     lenis.resize();
