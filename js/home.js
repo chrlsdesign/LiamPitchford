@@ -147,20 +147,12 @@ export function initHome({
   if (playSharedIntro) {
     const introObs = onScroll({ target: homeList, sync: true });
     animate(homeList, { translateY: ["100vh", "0vh"], autoplay: introObs });
-    if (intro) {
-      animate(intro, { translateY: ["0%", "-100%"], autoplay: introObs });
-    }
+    animate(".intro_center, .intro_btm, .inter", { opacity: 0, autoplay: introObs });
 
     onScroll({
       target: homeList,
-      onEnter: function handler(self) {
+      onLeaveForward: function handler(self) {
         self.revert();
-        animate(".main", {
-          opacity: 1,
-          pointerEvents: "auto",
-          duration: 400,
-          ease: cubicEase,
-        });
         animate(".nav", { translateY: "0%", duration: 400, ease: cubicEase });
         lenis.stop();
         lenis.options.infinite = true;
