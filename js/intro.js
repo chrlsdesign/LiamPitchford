@@ -211,7 +211,7 @@ export function updateIntroForPage(page) {
     const fromFill = getComputedStyle(paths[0]).fill;
     tl.add(
       paths,
-      { fill: [fromFill, toFill], opacity: fillOpacity, duration: 400 },
+      { fill: [fromFill, toFill], opacity: config.fillOpacity, duration: 400 },
       0,
     );
   }
