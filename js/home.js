@@ -140,29 +140,41 @@ export function initHome({
   lenis.scrollTo(0, { immediate: true });
 
   //The rest starts here
-  const intro = utils.$(".intro")[0];
+  const intros = utils.$(".intro");
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
   if (playSharedIntro) {
-    animate(intro, {
-      height: "0vh",
-      autoplay: onScroll({
-        target: intro,
-        sync: true,
-        enter: "top top",
+    intros.forEach((intro) => {
+      animate(intro, {
+        height: "0vh",
+        autoplay: onScroll({
+          target: intro,
+          sync: true,
+          onLeaveForward: () => {
+            intro.style.display = "none";
+          },
+        }),
+      });
+    });
+
+    const lastIntro = intros[intros.length - 1];
+    if (lastIntro) {
+      onScroll({
+        target: lastIntro,
         onLeaveForward: () => {
-          intro.style.display = "none";
           lenis.stop();
           lenis.options.infinite = true;
           lenis.resize();
           lenis.scrollTo(0, { immediate: true });
           requestAnimationFrame(() => lenis.start());
         },
-      }),
+      });
+    }
+  } else {
+    intros.forEach((intro) => {
+      intro.style.height = "0vh";
+      intro.style.display = "none";
     });
-  } else if (intro) {
-    intro.style.height = "0vh";
-    intro.style.display = "none";
     lenis.options.infinite = true;
     lenis.resize();
   }
