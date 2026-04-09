@@ -150,9 +150,8 @@ export function initHome({
         autoplay: onScroll({
           target: intro,
           sync: true,
-          onLeaveForward: () => {
-            intro.style.display = "none";
-          },
+          enter: "top top",
+          onLeaveForward: () => {},
         }),
       });
     });
