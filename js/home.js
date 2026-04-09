@@ -146,7 +146,7 @@ export function initHome({
 
   if (playSharedIntro) {
     const introObs = onScroll({ target: homeList, sync: true });
-    animate(homeList, { translateY: ["100vh", "0vh"], autoplay: introObs });
+    animate(homeList, { y: [window.innerHeight, 0], autoplay: introObs });
     animate(".intro_center, .intro_btm, .inter", { opacity: 0, autoplay: introObs });
 
     onScroll({
@@ -162,7 +162,7 @@ export function initHome({
       },
     });
   } else {
-    if (homeList) homeList.style.transform = "translateY(0)";
+    if (homeList) animate(homeList, { y: 0, duration: 0 });
     lenis.options.infinite = true;
     lenis.resize();
     animate(".main", { opacity: 1, pointerEvents: "auto", duration: 0 });
