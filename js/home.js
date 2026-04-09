@@ -147,7 +147,8 @@ export function initHome({
     const scrollThres = document.querySelector(".scroll-thres");
     const introObs = onScroll({
       container: scrollThres,
-      enter: "top top",
+      enter: "bottom top",
+      leave: "top bottom",
       onLeaveForward: function handler(self) {
         self.revert();
         if (scrollThres) scrollThres.remove();
