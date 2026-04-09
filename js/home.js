@@ -140,7 +140,7 @@ export function initHome({
   lenis.scrollTo(0, { immediate: true });
 
   //The rest starts here
-  const homeList = document.querySelector(".home_list");
+  const homeList = utils.$(".home_list")[0];
   const intro = document.querySelector(".intro");
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
@@ -155,7 +155,12 @@ export function initHome({
       target: homeList,
       onEnter: function handler(self) {
         self.revert();
-        animate(".main", { opacity: 1, pointerEvents: "auto", duration: 400, ease: cubicEase });
+        animate(".main", {
+          opacity: 1,
+          pointerEvents: "auto",
+          duration: 400,
+          ease: cubicEase,
+        });
         animate(".nav", { translateY: "0%", duration: 400, ease: cubicEase });
         lenis.stop();
         lenis.options.infinite = true;
