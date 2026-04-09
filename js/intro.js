@@ -96,7 +96,7 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
             ease: cubicEase,
           });
           animate(".nav", {
-            translateY: "0%",
+            y: ["100%", "0%"],
             duration: 400,
             ease: cubicEase,
           });
