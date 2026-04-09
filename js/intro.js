@@ -54,6 +54,26 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
         document.body.style.overflow = "";
         if (lenis) lenis.start();
         animate(".main", { opacity: 1, pointerEvents: "auto", duration: 0 });
+
+        const ac = new AbortController();
+        introInterAc = ac;
+        const inter = document.querySelector(".inter");
+        if (inter) {
+          animate(inter, { opacity: 1, pointerEvents: "auto", duration: 0 });
+          const animatable = createAnimatable(inter, {
+            x: { duration: 600, ease: "out(3)" },
+            y: { duration: 600, ease: "out(3)" },
+          });
+          document.addEventListener(
+            "mousemove",
+            (e) => {
+              animatable.x(e.clientX - inter.offsetWidth / 2);
+              animatable.y(e.clientY - inter.offsetHeight / 2);
+            },
+            { signal: ac.signal },
+          );
+        }
+
         resolve();
         return;
       }
@@ -115,6 +135,14 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
       });
     });
   });
+}
+
+/** Stop homepage `.inter` mousemove (call from home.js onLeaveForward). */
+export function detachIntroInterListeners() {
+  if (introInterAc) {
+    introInterAc.abort();
+    introInterAc = null;
+  }
 }
 
 /** @param {{ lenis?: object | null, isHome?: boolean }} [opts] */

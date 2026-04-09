@@ -7,7 +7,11 @@ import {
   createTimeline,
 } from "animejs";
 import Lenis from "lenis";
-import { playSharedIntroIfPresent, updateIntroForPage } from "./intro.js";
+import {
+  detachIntroInterListeners,
+  playSharedIntroIfPresent,
+  updateIntroForPage,
+} from "./intro.js";
 
 let scrollObservers = [];
 const played = new Set();
@@ -155,7 +159,7 @@ export function initHome({
     const tl = createTimeline();
 
     tl.add(homeList, { y: ["100vh", 0] }, 0).add(
-      ".intro_center, .intro_btm, .inter",
+      ".intro_center, .intro_btm",
       { opacity: 0 },
       0,
     );
@@ -167,6 +171,8 @@ export function initHome({
       onLeaveForward: function handler(self) {
         self.revert();
         if (scrollThres) scrollThres.remove();
+        detachIntroInterListeners();
+        animate(".inter", { opacity: 0, duration: 200, ease: cubicEase });
         animate(".nav", { y: "0%", duration: 400, ease: cubicEase });
         lenis.stop();
         lenis.options.infinite = true;
@@ -341,6 +347,7 @@ function resetScrollReveal() {
 }
 
 export function destroyHome() {
+  detachIntroInterListeners();
   document.documentElement.style.overflow = "";
   document.body.style.overflow = "";
   lenisRafActive = false;
