@@ -140,42 +140,35 @@ export function initHome({
   lenis.scrollTo(0, { immediate: true });
 
   //The rest starts here
-  const intros = utils.$(".intro");
+  const homeList = document.querySelector(".home_list");
+  const intro = document.querySelector(".intro");
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
   if (playSharedIntro) {
-    intros.forEach((intro) => {
-      animate(intro, {
-        height: "0vh",
-        autoplay: onScroll({
-          target: intro,
-          sync: true,
-          enter: "top top",
-          onLeaveForward: () => {},
-        }),
-      });
-    });
-
-    const lastIntro = intros[intros.length - 1];
-    if (lastIntro) {
-      onScroll({
-        target: lastIntro,
-        onLeaveForward: () => {
-          lenis.stop();
-          lenis.options.infinite = true;
-          lenis.resize();
-          lenis.scrollTo(0, { immediate: true });
-          requestAnimationFrame(() => lenis.start());
-        },
-      });
+    const introObs = onScroll({ target: homeList, sync: true });
+    animate(homeList, { translateY: ["100vh", "0vh"], autoplay: introObs });
+    if (intro) {
+      animate(intro, { translateY: ["0%", "-100%"], autoplay: introObs });
     }
-  } else {
-    intros.forEach((intro) => {
-      intro.style.height = "0vh";
-      intro.style.display = "none";
+
+    onScroll({
+      target: homeList,
+      onEnter: function handler(self) {
+        self.revert();
+        animate(".main", { opacity: 1, pointerEvents: "auto", duration: 400, ease: cubicEase });
+        animate(".nav", { translateY: "0%", duration: 400, ease: cubicEase });
+        lenis.stop();
+        lenis.options.infinite = true;
+        lenis.resize();
+        lenis.scrollTo(0, { immediate: true });
+        requestAnimationFrame(() => lenis.start());
+      },
     });
+  } else {
+    if (homeList) homeList.style.transform = "translateY(0)";
     lenis.options.infinite = true;
     lenis.resize();
+    animate(".main", { opacity: 1, pointerEvents: "auto", duration: 0 });
   }
 
   const homeItems = getHomeListItems();

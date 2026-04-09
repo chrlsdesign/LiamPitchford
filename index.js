@@ -100,6 +100,11 @@ class DefaultRenderer extends Renderer {
 
     if (!playSharedIntro) {
       updateIntroForPage(pageKey);
+      const main = document.querySelector(".main");
+      if (main) {
+        main.style.opacity = "1";
+        main.style.pointerEvents = "auto";
+      }
     }
 
     if (isHome) {

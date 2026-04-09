@@ -94,7 +94,17 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
           duration: 250,
           ease: cubicEase,
         }).then(() => {
-          introEl.style.zIndex = "-1";
+          animate(".main", {
+            opacity: 1,
+            pointerEvents: "auto",
+            duration: 400,
+            ease: cubicEase,
+          });
+          animate(".nav", {
+            translateY: "0%",
+            duration: 400,
+            ease: cubicEase,
+          });
           if (lenis) lenis.start();
           resolve();
         });
@@ -121,7 +131,7 @@ export function playSharedIntroIfPresent(opts) {
 const DEFAULT_FLOWER_Y = "50%";
 
 const INTRO_PAGE_CONFIG = {
-  home: { opacity: 1, flowerY: DEFAULT_FLOWER_Y, fill: "#EE7F31" },
+  home: { opacity: .2, flowerY: DEFAULT_FLOWER_Y, fill: "#EE7F31" },
   about: { opacity: 1, flowerY: DEFAULT_FLOWER_Y, fill: "#EE7F31" },
   work: { opacity: 1, flowerY: "-50%", fill: "#ffffff" },
   workContent: { opacity: 0, flowerY: "-50%", fill: "#EE7F31" },
@@ -172,7 +182,7 @@ export function updateIntroForPage(page) {
 
   if (flowerGroup && flowerYNeedsAnimation(flowerGroup, config.flowerY)) {
     animate(flowerGroup, {
-      translateY: config.flowerY,
+      y: config.flowerY,
       duration: 1500,
       ease: cubicEase,
     });
