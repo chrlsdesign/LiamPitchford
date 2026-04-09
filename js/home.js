@@ -141,7 +141,6 @@ export function initHome({
 
   //The rest starts here
   const homeList = utils.$(".home_list")[0];
-  const intro = document.querySelector(".intro");
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
   if (playSharedIntro) {
@@ -161,7 +160,7 @@ export function initHome({
       },
       sync: true,
     });
-    const homeListAnim = animate(homeList, { y: [window.innerHeight, 0] });
+    const homeListAnim = animate(homeList, { y: ["100%", 0] });
     const introCenterAnim = animate(".intro_center, .intro_btm, .inter", {
       opacity: 0,
     });
