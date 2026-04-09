@@ -141,24 +141,31 @@ export function initHome({
 
   //The rest starts here
   const intro = utils.$(".intro")[0];
-  animate(intro, {
-    height: "0vh",
-    autoplay: onScroll({
-      target: intro,
-      sync: true,
-      enter: "top top",
-      onLeaveForward: () => {
-        intro.style.display = "none";
-        lenis.stop();
-        lenis.options.infinite = true;
-        lenis.resize();
-        lenis.scrollTo(0, { immediate: true });
-        requestAnimationFrame(() => lenis.start());
-      },
-    }),
-  });
-
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
+
+  if (playSharedIntro) {
+    animate(intro, {
+      height: "0vh",
+      autoplay: onScroll({
+        target: intro,
+        sync: true,
+        enter: "top top",
+        onLeaveForward: () => {
+          intro.style.display = "none";
+          lenis.stop();
+          lenis.options.infinite = true;
+          lenis.resize();
+          lenis.scrollTo(0, { immediate: true });
+          requestAnimationFrame(() => lenis.start());
+        },
+      }),
+    });
+  } else if (intro) {
+    intro.style.height = "0vh";
+    intro.style.display = "none";
+    lenis.options.infinite = true;
+    lenis.resize();
+  }
 
   const homeItems = getHomeListItems();
   if (homeItems.length) setHomeItemsBlurred(homeItems);

@@ -1,4 +1,9 @@
-import { animate, createAnimatable, createTimeline, cubicBezier } from "animejs";
+import {
+  animate,
+  createAnimatable,
+  createTimeline,
+  cubicBezier,
+} from "animejs";
 
 const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
@@ -33,7 +38,7 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
           const rect = el.getBoundingClientRect();
           const padding =
             parseFloat(getComputedStyle(document.documentElement).fontSize) *
-            0.875;
+            1.25;
 
           if (i === 0) {
             return -(rect.left - padding);
@@ -71,6 +76,7 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
         document.addEventListener(
           "mousemove",
           (e) => {
+            animate(inter, { opacity: 1, duration: 250 });
             animatable.x(e.clientX - inter.offsetWidth / 2);
             animatable.y(e.clientY - inter.offsetHeight / 2);
           },
