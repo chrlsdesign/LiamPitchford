@@ -147,29 +147,27 @@ export function initHome({
   if (playSharedIntro) {
     const scrollThres = document.querySelector(".scroll-thres");
     const introObs = onScroll({
-      target: scrollThres,
+      container: scrollThres,
       enter: "top top",
-      sync: true,
-    });
-    animate(homeList, { y: [window.innerHeight, 0], autoplay: introObs });
-    animate(".intro_center, .intro_btm, .inter", {
-      opacity: 0,
-      autoplay: introObs,
-    });
-
-    onScroll({
-      target: scrollThres,
       onLeaveForward: function handler(self) {
         self.revert();
         if (scrollThres) scrollThres.remove();
-        animate(".nav", { translateY: "0%", duration: 400, ease: cubicEase });
+        animate(".nav", { y: "0%", duration: 400, ease: cubicEase });
         lenis.stop();
         lenis.options.infinite = true;
         lenis.resize();
         lenis.scrollTo(0, { immediate: true });
         requestAnimationFrame(() => lenis.start());
       },
+      sync: true,
     });
+    const homeListAnim = animate(homeList, { y: [window.innerHeight, 0] });
+    const introCenterAnim = animate(".intro_center, .intro_btm, .inter", {
+      opacity: 0,
+    });
+
+    introObs.link(homeListAnim);
+    introObs.link(introCenterAnim);
   } else {
     const scrollThres = document.querySelector(".scroll-thres");
     if (scrollThres) scrollThres.remove();
