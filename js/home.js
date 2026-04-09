@@ -161,7 +161,7 @@ export function initHome({
     );
 
     const introObs = onScroll({
-      container: scrollThres,
+      target: scrollThres,
       enter: "bottom top",
       leave: "top bottom",
       onLeaveForward: function handler(self) {
