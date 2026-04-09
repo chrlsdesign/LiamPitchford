@@ -158,7 +158,7 @@ export function initHome({
     const scrollThres = document.querySelector(".scroll-thres");
     const tl = createTimeline();
 
-    tl.add(homeList, { y: ["100vh", 0], duration: 500, ease: "out(3)" }, 0).add(
+    tl.add(homeList, { y: ["100vh", 0] }, 0).add(
       ".intro_center, .intro_btm",
       { opacity: 0 },
       0,
@@ -173,7 +173,7 @@ export function initHome({
         if (scrollThres) scrollThres.remove();
         detachIntroInterListeners();
         animate(".inter", { opacity: 0, duration: 200, ease: cubicEase });
-        animate(".nav", { y: "0%", duration: 400, ease: cubicEase });
+        animate(".nav", { y: ["-100%", "0%"], duration: 400, ease: cubicEase });
         lenis.stop();
         lenis.options.infinite = true;
         lenis.resize();

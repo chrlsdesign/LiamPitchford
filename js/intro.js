@@ -151,21 +151,19 @@ export function playSharedIntroIfPresent(opts) {
   return playHomeIntro(opts);
 }
 
-const DEFAULT_FLOWER_Y = "50%";
-
 const INTRO_PAGE_CONFIG = {
-  home: { opacity: 1, flowerY: DEFAULT_FLOWER_Y, fill: "#EE7F31" },
-  about: { opacity: 1, flowerY: DEFAULT_FLOWER_Y, fill: "#EE7F31" },
-  work: { opacity: 1, flowerY: "-50%", fill: "#ffffff" },
-  workContent: { opacity: 0, flowerY: "-50%", fill: "#EE7F31" },
+  home: { opacity: 1, flowerY: "50%", fill: "#EE7F31", fillOpacity: 0.5 },
+  about: { opacity: 1, flowerY: "50%", fill: "#EE7F31", fillOpacity: 0.5 },
+  work: { opacity: 1, flowerY: "-50%", fill: "#ffffff", fillOpacity: 1 },
+  workContent: {
+    opacity: 0,
+    flowerY: "-50%",
+    fill: "#EE7F31",
+    fillOpacity: 0.5,
+  },
 };
 
 let defaultFill = null;
-
-function parseFlowerYPercent(value) {
-  const m = String(value).match(/^(-?[\d.]+)%$/);
-  return m ? parseFloat(m[1]) : null;
-}
 
 /** Current translateY as % of element height (CSS % resolves against self). */
 function readFlowerTranslateYPercent(el) {
@@ -174,13 +172,6 @@ function readFlowerTranslateYPercent(el) {
   const m = new DOMMatrixReadOnly(t);
   const h = el.getBoundingClientRect().height || 1;
   return (m.m42 / h) * 100;
-}
-
-function flowerYNeedsAnimation(el, targetY) {
-  const target = parseFlowerYPercent(targetY);
-  if (target == null) return true;
-  const current = readFlowerTranslateYPercent(el);
-  return Math.abs(current - target) > 0.75;
 }
 
 export function updateIntroForPage(page) {
@@ -197,25 +188,31 @@ export function updateIntroForPage(page) {
     defaultFill = getComputedStyle(paths[0]).fill;
   }
 
-  animate(introEl, {
-    opacity: config.opacity,
-    duration: 400,
-    ease: cubicEase,
-  });
+  const tl = createTimeline({ defaults: { ease: cubicEase } });
 
-  if (flowerGroup && flowerYNeedsAnimation(flowerGroup, config.flowerY)) {
-    animate(flowerGroup, {
-      y: config.flowerY,
-      duration: 1500,
-      ease: cubicEase,
-    });
+  const introOpacity = parseFloat(getComputedStyle(introEl).opacity);
+  tl.add(
+    introEl,
+    { opacity: [introOpacity, config.opacity], duration: 400 },
+    0,
+  );
+
+  if (flowerGroup) {
+    const flowerFromY = `${readFlowerTranslateYPercent(flowerGroup)}%`;
+    tl.add(
+      flowerGroup,
+      { y: [flowerFromY, config.flowerY], duration: 1500 },
+      0,
+    );
   }
 
   if (paths.length) {
-    animate(paths, {
-      fill: { to: config.fill || defaultFill },
-      duration: 400,
-      ease: cubicEase,
-    });
+    const toFill = config.fill || defaultFill;
+    const fromFill = getComputedStyle(paths[0]).fill;
+    tl.add(
+      paths,
+      { fill: [fromFill, toFill], opacity: fillOpacity, duration: 400 },
+      0,
+    );
   }
 }
