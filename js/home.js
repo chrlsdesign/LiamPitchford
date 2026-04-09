@@ -1,4 +1,11 @@
-import { animate, cubicBezier, createLayout, onScroll, utils } from "animejs";
+import {
+  animate,
+  cubicBezier,
+  createLayout,
+  onScroll,
+  utils,
+  createTimeline,
+} from "animejs";
 import Lenis from "lenis";
 import { playSharedIntroIfPresent, updateIntroForPage } from "./intro.js";
 
@@ -145,6 +152,14 @@ export function initHome({
 
   if (playSharedIntro) {
     const scrollThres = document.querySelector(".scroll-thres");
+    const tl = createTimeline();
+
+    tl.add(homeList, { y: ["100vh", 0] }, 0).add(
+      ".intro_center, .intro_btm, .inter",
+      { opacity: 0 },
+      0,
+    );
+
     const introObs = onScroll({
       container: scrollThres,
       enter: "bottom top",
@@ -160,14 +175,10 @@ export function initHome({
         requestAnimationFrame(() => lenis.start());
       },
       sync: true,
-    });
-    const homeListAnim = animate(homeList, { y: ["100%", 0] });
-    const introCenterAnim = animate(".intro_center, .intro_btm, .inter", {
-      opacity: 0,
+      debug: true,
     });
 
-    introObs.link(homeListAnim);
-    introObs.link(introCenterAnim);
+    introObs.link(tl);
   } else {
     const scrollThres = document.querySelector(".scroll-thres");
     if (scrollThres) scrollThres.remove();
