@@ -146,9 +146,16 @@ export function initHome({
 
   if (playSharedIntro) {
     const scrollThres = document.querySelector(".scroll-thres");
-    const introObs = onScroll({ target: scrollThres, sync: true });
+    const introObs = onScroll({
+      target: scrollThres,
+      enter: "top top",
+      sync: true,
+    });
     animate(homeList, { y: [window.innerHeight, 0], autoplay: introObs });
-    animate(".intro_center, .intro_btm, .inter", { opacity: 0, autoplay: introObs });
+    animate(".intro_center, .intro_btm, .inter", {
+      opacity: 0,
+      autoplay: introObs,
+    });
 
     onScroll({
       target: scrollThres,
@@ -166,7 +173,7 @@ export function initHome({
   } else {
     const scrollThres = document.querySelector(".scroll-thres");
     if (scrollThres) scrollThres.remove();
-  
+
     if (homeList) animate(homeList, { y: 0, duration: 0 });
     lenis.options.infinite = true;
     lenis.resize();
