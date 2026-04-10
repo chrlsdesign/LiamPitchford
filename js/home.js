@@ -170,7 +170,7 @@ export function initHome({
     const introObs = onScroll({
       target: scrollThres,
       enter: "top top",
-      leave: "top bottom",
+      leave: "top center",
       onLeaveForward: function handler(self) {
         self.revert();
         if (scrollThres) scrollThres.remove();
