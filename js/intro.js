@@ -8,17 +8,48 @@ import {
 const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
 let introInterAc = null;
+/** Blocks native scroll during opening timeline on non-home (wheel/touchmove preventDefault). */
+let introScrollPhase1Ac = null;
+
+function lockIntroBodyScroll() {
+  document.documentElement.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
+}
+
+function unlockIntroBodyScroll() {
+  document.documentElement.style.overflow = "";
+  document.body.style.overflow = "";
+}
 
 export function playHomeIntro({ lenis = null, isHome = false } = {}) {
   if (introInterAc) {
     introInterAc.abort();
     introInterAc = null;
   }
+  if (introScrollPhase1Ac) {
+    introScrollPhase1Ac.abort();
+    introScrollPhase1Ac = null;
+  }
+  unlockIntroBodyScroll();
 
   const introEl = document.querySelector(".intro");
   if (!introEl) return Promise.resolve();
 
   return new Promise((resolve) => {
+    if (!isHome) {
+      lockIntroBodyScroll();
+      introScrollPhase1Ac = new AbortController();
+      const blockScroll = (e) => e.preventDefault();
+      window.addEventListener("wheel", blockScroll, {
+        passive: false,
+        signal: introScrollPhase1Ac.signal,
+      });
+      window.addEventListener("touchmove", blockScroll, {
+        passive: false,
+        signal: introScrollPhase1Ac.signal,
+      });
+    }
+
     const tl = createTimeline({
       defaults: { duration: 700, ease: cubicEase },
     });
@@ -51,7 +82,7 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
 
     tl.then(() => {
       if (isHome) {
-        document.body.style.overflow = "";
+        unlockIntroBodyScroll();
         if (lenis) lenis.start();
         animate(".main", { opacity: 1, pointerEvents: "auto", duration: 0 });
 
@@ -78,7 +109,10 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
         return;
       }
 
-      // Non-home: enable .inter mousemove, wait for scroll to dismiss
+      introScrollPhase1Ac?.abort();
+      introScrollPhase1Ac = null;
+
+      // Non-home: scroll still locked; enable .inter mousemove, first wheel/touch dismisses
       const ac = new AbortController();
       introInterAc = ac;
 
@@ -99,11 +133,10 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
         );
       }
 
-      document.body.style.overflow = "";
-
       const dismiss = () => {
         ac.abort();
         introInterAc = null;
+        unlockIntroBodyScroll();
         animate(".intro_center, .intro_btm, .inter", {
           opacity: 0,
           duration: 250,
@@ -125,11 +158,17 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
         });
       };
 
-      window.addEventListener("wheel", dismiss, {
+      const dismissOnScrollIntent = (e) => {
+        e.preventDefault();
+        dismiss();
+      };
+      window.addEventListener("wheel", dismissOnScrollIntent, {
+        passive: false,
         once: true,
         signal: ac.signal,
       });
-      window.addEventListener("touchmove", dismiss, {
+      window.addEventListener("touchmove", dismissOnScrollIntent, {
+        passive: false,
         once: true,
         signal: ac.signal,
       });
@@ -143,6 +182,11 @@ export function detachIntroInterListeners() {
     introInterAc.abort();
     introInterAc = null;
   }
+  if (introScrollPhase1Ac) {
+    introScrollPhase1Ac.abort();
+    introScrollPhase1Ac = null;
+  }
+  unlockIntroBodyScroll();
 }
 
 /** @param {{ lenis?: object | null, isHome?: boolean }} [opts] */

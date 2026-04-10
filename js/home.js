@@ -181,7 +181,6 @@ export function initHome({
         requestAnimationFrame(() => lenis.start());
       },
       sync: true,
-      debug: true,
     });
 
     introObs.link(tl);
