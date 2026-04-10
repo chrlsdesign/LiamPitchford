@@ -161,7 +161,7 @@ export function initHome({
     const scrollThres = document.querySelector(".scroll-thres");
     const tl = createTimeline();
 
-    tl.add(homeList, { y: ["100vh", 0], duration: 1500 }, 0).add(
+    tl.add(homeList, { y: ["100vh", 0], duration: 2500 }, 0).add(
       ".intro_center, .intro_btm",
       { opacity: 0 },
       0,
