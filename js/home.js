@@ -103,6 +103,7 @@ function initScrollReveal(cubicEase) {
     const observer = onScroll({
       target: item,
       repeat: false,
+      debug: true,
       onEnter: () => {
         if (played.has(item)) return;
         played.add(item);
