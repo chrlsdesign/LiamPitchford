@@ -99,16 +99,15 @@ function initScrollReveal(cubicEase) {
   if (!originalList) return;
   const items = originalList.querySelectorAll(".home_item");
 
-  let orY = new DOMMatrix(getComputedStyle(originalList).transform).m42;
-
   items.forEach((item) => {
     const observer = onScroll({
       target: item,
       repeat: false,
       debug: true,
-      enter: `${orY}vh`,
-      onUpdate: ({ progress }) => {
-        console.log("list translateY:", orY, "progress:", progress);
+      enter: () => {
+        const m42 = new DOMMatrix(getComputedStyle(originalList).transform).m42;
+        const orY = (m42 / window.innerHeight) * 100;
+        return `${orY}vh`;
       },
       onEnter: () => {
         if (played.has(item)) return;
@@ -129,6 +128,8 @@ function initScrollReveal(cubicEase) {
         });
       },
     });
+
+    lenis.on("scroll", () => observer.refresh());
 
     scrollObservers.push(observer);
   });
