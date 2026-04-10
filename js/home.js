@@ -104,11 +104,10 @@ function initScrollReveal(cubicEase) {
       target: item,
       repeat: false,
       debug: true,
-      enter: () => {
-        const m42 = new DOMMatrix(getComputedStyle(originalList).transform).m42;
-        const orY = (m42 / window.innerHeight) * 100;
-        return `${orY}vh`;
-      },
+      // Trigger when viewport bottom reaches the item top.
+      // Because bounds are refreshed on lenis scroll, this still tracks correctly
+      // even while `.home_list` is translated.
+      enter: "bottom top",
       onEnter: () => {
         if (played.has(item)) return;
         played.add(item);
