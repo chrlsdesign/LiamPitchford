@@ -103,10 +103,6 @@ function initScrollReveal(cubicEase) {
     const observer = onScroll({
       target: item,
       repeat: false,
-      debug: true,
-      // Trigger when viewport bottom reaches the item top.
-      // Because bounds are refreshed on lenis scroll, this still tracks correctly
-      // even while `.home_list` is translated.
       enter: "bottom top",
       onEnter: () => {
         if (played.has(item)) return;
@@ -165,7 +161,7 @@ export function initHome({
     const scrollThres = document.querySelector(".scroll-thres");
     const tl = createTimeline();
 
-    tl.add(homeList, { y: ["100vh", 0] }, 0).add(
+    tl.add(homeList, { y: ["100vh", 0], duration: 1500 }, 0).add(
       ".intro_center, .intro_btm",
       { opacity: 0 },
       0,
