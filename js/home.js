@@ -99,16 +99,16 @@ function initScrollReveal(cubicEase) {
   if (!originalList) return;
   const items = originalList.querySelectorAll(".home_item");
 
-  let translate = new DOMMatrix(originalList.style.transform).m42;
+  let orY = new DOMMatrix(getComputedStyle(originalList).transform).m42;
 
   items.forEach((item) => {
     const observer = onScroll({
       target: item,
       repeat: false,
       debug: true,
-      enter: `${translate}vh`,
-      onUpdate: () => {
-        console.log(translate);
+      enter: `${orY}vh`,
+      onUpdate: ({ progress }) => {
+        console.log("list translateY:", orY, "progress:", progress);
       },
       onEnter: () => {
         if (played.has(item)) return;
