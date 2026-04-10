@@ -104,6 +104,9 @@ function initScrollReveal(cubicEase) {
       target: item,
       repeat: false,
       debug: true,
+      onUpdate: () => {
+        console.log(originalList.style.transform);
+      },
       onEnter: () => {
         if (played.has(item)) return;
         played.add(item);
