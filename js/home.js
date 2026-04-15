@@ -135,6 +135,8 @@ export function initHome({
   content = document,
   pageKey = "home",
 } = {}) {
+  const hasSharedIntro = !!document.querySelector(".intro");
+
   //Lenis goes first
   lenis = new Lenis({
     infinite: false,
@@ -152,6 +154,13 @@ export function initHome({
   requestAnimationFrame(raf);
 
   lenis.scrollTo(0, { immediate: true });
+  if (playSharedIntro && hasSharedIntro) {
+    // Keep the intro deterministic by blocking all scroll input
+    // until shared intro animation has finished.
+    lenis.stop();
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+  }
 
   //The rest starts here
   const homeList = utils.$(".home_list")[0];
@@ -202,6 +211,8 @@ export function initHome({
 
   if (playSharedIntro) {
     playSharedIntroIfPresent({ lenis, isHome: true }).then(() => {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
       updateIntroForPage(pageKey);
       initScrollReveal(cubicEase);
     });
