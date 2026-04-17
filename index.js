@@ -8,6 +8,11 @@ import { updateIntroForPage } from "./js/intro.js";
 /** 1 = first paint after full page load / refresh; 2+ = Taxi swaps (same JS session). */
 let taxiContentEnterCount = 0;
 
+console.log(
+  "%c Developed by CHRLS DESIGN - https://chrls.design",
+  "background: #000; color: #fff; display: block; padding:5px; padding-right: 10px;"
+);
+
 function routeSegments(pathname) {
   const p = pathname.split("?")[0].toLowerCase().replace(/\/+$/, "") || "/";
   const segs = p === "/" ? [] : p.split("/").filter(Boolean);
@@ -37,8 +42,25 @@ function updateTime() {
   );
 }
 
+function copyEmail(sourceEl) {
+  const copy = (text) => navigator.clipboard.writeText(text);
+  const email =
+    sourceEl?.getAttribute("data-email") ||
+    document.querySelector("[data-email]")?.getAttribute("data-email") ||
+    "";
+  if (!email) return;
+  copy(email);
+}
+
 updateTime();
 setInterval(updateTime, 1000);
+
+document.addEventListener("click", (event) => {
+  const emailEl = event.target.closest("[data-email]");
+  if (!emailEl) return;
+  event.preventDefault();
+  copyEmail(emailEl);
+});
 
 // Fade transition
 class FadeTransition extends Transition {
