@@ -18,6 +18,26 @@ const played = new Set();
 let lenis = null;
 let lenisRafActive = false;
 let destroyGalleryZoom = null;
+let lenisScrollUnsub = null;
+let pendingResizeRaf = 0;
+
+function isCoarsePointer() {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia &&
+    window.matchMedia("(pointer: coarse)").matches
+  );
+}
+
+/** Schedule a single Lenis resize on the next frame (coalesces bursts of media-load resizes). */
+function scheduleLenisResize() {
+  if (!lenis) return;
+  if (pendingResizeRaf) return;
+  pendingResizeRaf = requestAnimationFrame(() => {
+    pendingResizeRaf = 0;
+    if (lenis) lenis.resize();
+  });
+}
 
 const HOME_ITEM_BLUR_START = "blur(20px)";
 const HOME_ITEM_BLUR_END = "blur(0px)";
@@ -57,6 +77,7 @@ function applyMediaAspectRatio(media) {
     const str = Number(r.toFixed(6)).toString();
     media.setAttribute("ratio", str);
     media.style.aspectRatio = str;
+    scheduleLenisResize();
   };
 
   if (media.tagName === "IMG") {
@@ -124,10 +145,22 @@ function initScrollReveal(cubicEase) {
       },
     });
 
-    lenis.on("scroll", () => observer.refresh());
-
     scrollObservers.push(observer);
   });
+
+  if (lenis && !lenisScrollUnsub) {
+    const onLenisScroll = () => {
+      for (let i = 0; i < scrollObservers.length; i++) {
+        scrollObservers[i].refresh();
+      }
+    };
+    lenis.on("scroll", onLenisScroll);
+    lenisScrollUnsub = () => {
+      if (lenis && typeof lenis.off === "function") {
+        lenis.off("scroll", onLenisScroll);
+      }
+    };
+  }
 }
 
 export function initHome({
@@ -137,12 +170,14 @@ export function initHome({
 } = {}) {
   const hasSharedIntro = !!document.querySelector(".intro");
 
-  //Lenis goes first
+  // Lenis goes first.
+  // Touch sync is fragile at the infinite seam on iOS/Safari, so disable on coarse pointers.
+  const coarse = isCoarsePointer();
   lenis = new Lenis({
     infinite: false,
-    smoothTouch: true,
-    syncTouch: true,
-    touchMultiplier: 1.25,
+    smoothTouch: !coarse,
+    syncTouch: !coarse,
+    touchMultiplier: coarse ? 1 : 1.25,
   });
 
   lenisRafActive = true;
@@ -367,6 +402,14 @@ export function destroyHome() {
   if (destroyGalleryZoom) {
     destroyGalleryZoom();
     destroyGalleryZoom = null;
+  }
+  if (pendingResizeRaf) {
+    cancelAnimationFrame(pendingResizeRaf);
+    pendingResizeRaf = 0;
+  }
+  if (lenisScrollUnsub) {
+    lenisScrollUnsub();
+    lenisScrollUnsub = null;
   }
   if (lenis) {
     lenis.stop();

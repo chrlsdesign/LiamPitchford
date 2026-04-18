@@ -90,19 +90,26 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
         introInterAc = ac;
         const inter = document.querySelector(".inter");
         if (inter) {
-          animate(inter, { opacity: 1, pointerEvents: "auto", duration: 0 });
-          const animatable = createAnimatable(inter, {
-            x: { duration: 600, ease: "out(3)" },
-            y: { duration: 600, ease: "out(3)" },
-          });
-          document.addEventListener(
-            "mousemove",
-            (e) => {
-              animatable.x(e.clientX - inter.offsetWidth / 2);
-              animatable.y(e.clientY - inter.offsetHeight / 2);
-            },
-            { signal: ac.signal },
-          );
+          const isMobileLike =
+            window.matchMedia("(max-width: 991px)").matches ||
+            window.matchMedia("(pointer: coarse)").matches;
+          if (isMobileLike) {
+            animate(inter, { opacity: 0, pointerEvents: "none", duration: 0 });
+          } else {
+            animate(inter, { opacity: 1, pointerEvents: "auto", duration: 0 });
+            const animatable = createAnimatable(inter, {
+              x: { duration: 600, ease: "out(3)" },
+              y: { duration: 600, ease: "out(3)" },
+            });
+            document.addEventListener(
+              "mousemove",
+              (e) => {
+                animatable.x(e.clientX - inter.offsetWidth / 2);
+                animatable.y(e.clientY - inter.offsetHeight / 2);
+              },
+              { signal: ac.signal },
+            );
+          }
         }
 
         resolve();
