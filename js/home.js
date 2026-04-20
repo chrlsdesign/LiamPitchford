@@ -18,6 +18,7 @@ const played = new Set();
 let lenis = null;
 let lenisRafActive = false;
 let destroyGalleryZoom = null;
+let infiniteStrip = null;
 
 const HOME_ITEM_BLUR_START = "blur(20px)";
 const HOME_ITEM_BLUR_END = "blur(0px)";
@@ -130,6 +131,138 @@ function initScrollReveal(cubicEase) {
   });
 }
 
+function attachLinkCursor(link) {
+  const crs = link.querySelector(".home_flw--crs");
+  if (!crs) return;
+
+  link.addEventListener("mousemove", (e) => {
+    const linkRect = link.getBoundingClientRect();
+    const crsRect = crs.getBoundingClientRect();
+
+    const w = crsRect.width;
+    const h = crsRect.height;
+    const offsetX = 8;
+    const offsetY = 8;
+
+    const x = Math.min(
+      Math.max(e.clientX - linkRect.left - offsetX, 0),
+      Math.max(0, linkRect.width - w),
+    );
+    const y = Math.min(
+      Math.max(e.clientY - linkRect.top - offsetY, 0),
+      Math.max(0, linkRect.height - h),
+    );
+
+    crs.style.transform = `translate(${x}px, ${y}px)`;
+  });
+
+  link.addEventListener("mouseenter", () => {
+    animate(crs, { opacity: 1, duration: 800, ease: "inOut(1.68)" });
+  });
+
+  link.addEventListener("mouseleave", () => {
+    animate(crs, { opacity: 0, duration: 800, ease: "inOut(1.68)" });
+  });
+}
+
+/**
+ * Custom infinite scroll for `.home_list`.
+ * Clones originals above and below, translates the strip via transform, and
+ * teleports at the boundaries. Feeds off Lenis' scroll delta so momentum still
+ * feels smooth, but without Lenis' own `infinite: true` seam on mobile.
+ */
+function startInfiniteStrip() {
+  if (!lenis) return;
+  if (infiniteStrip) return;
+
+  const strip = document.querySelector(".home_list");
+  if (!strip) return;
+
+  const originals = [...strip.children];
+  if (!originals.length) return;
+
+  const clonesBefore = originals.map((el) => {
+    const c = el.cloneNode(true);
+    c.setAttribute("aria-hidden", "true");
+    c.classList.add("is-clone");
+    return c;
+  });
+  const clonesAfter = originals.map((el) => {
+    const c = el.cloneNode(true);
+    c.setAttribute("aria-hidden", "true");
+    c.classList.add("is-clone");
+    return c;
+  });
+
+  for (let i = clonesBefore.length - 1; i >= 0; i--) {
+    strip.prepend(clonesBefore[i]);
+  }
+  clonesAfter.forEach((el) => strip.appendChild(el));
+
+  // Clones skip the reveal blur; they're duplicates for visual looping only.
+  [...clonesBefore, ...clonesAfter].forEach((el) => {
+    el.style.filter = "none";
+    el.querySelectorAll(".home_cms--link").forEach(attachLinkCursor);
+  });
+
+  const getOrigH = () =>
+    originals.reduce((h, el) => h + el.offsetHeight, 0);
+
+  const origH = getOrigH();
+  let currentY = -origH;
+  let targetY = -origH;
+  strip.style.transform = `translate3d(0, ${currentY}px, 0)`;
+
+  const onScrollDelta = (e) => {
+    const d = typeof e?.deltaY === "number" ? e.deltaY : 0;
+    if (d) targetY -= d;
+  };
+  lenis.on("scroll", onScrollDelta);
+
+  let running = true;
+  let rafId = 0;
+  const loop = () => {
+    if (!running) return;
+
+    currentY += (targetY - currentY) * 0.075;
+
+    const h = getOrigH();
+    if (currentY > 0) {
+      currentY -= h;
+      targetY -= h;
+    }
+    if (currentY < -(2 * h)) {
+      currentY += h;
+      targetY += h;
+    }
+
+    strip.style.transform = `translate3d(0, ${Math.round(currentY)}px, 0)`;
+    rafId = requestAnimationFrame(loop);
+  };
+  rafId = requestAnimationFrame(loop);
+
+  infiniteStrip = {
+    strip,
+    clones: [...clonesBefore, ...clonesAfter],
+    stop() {
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = 0;
+      if (lenis && typeof lenis.off === "function") {
+        lenis.off("scroll", onScrollDelta);
+      }
+    },
+  };
+}
+
+function stopInfiniteStrip() {
+  if (!infiniteStrip) return;
+  infiniteStrip.stop();
+  infiniteStrip.clones.forEach((el) => el.remove());
+  if (infiniteStrip.strip) infiniteStrip.strip.style.transform = "";
+  infiniteStrip = null;
+}
+
 export function initHome({
   playSharedIntro = false,
   content = document,
@@ -137,11 +270,12 @@ export function initHome({
 } = {}) {
   const hasSharedIntro = !!document.querySelector(".intro");
 
-  //Lenis goes first
+  // Lenis is kept only as a smooth input layer. The infinite loop is handled
+  // by `startInfiniteStrip()` (custom clone + translate + teleport) to avoid
+  // Lenis' mobile seam jump at the wrap point.
   lenis = new Lenis({
-    infinite: false,
+    smoothWheel: true,
     smoothTouch: true,
-    syncTouch: true,
     touchMultiplier: 1.25,
   });
 
@@ -186,11 +320,8 @@ export function initHome({
         detachIntroInterListeners();
         animate(".inter", { opacity: 0, duration: 200, ease: cubicEase });
         animate(".nav", { y: ["-100%", "0%"], duration: 400, ease: cubicEase });
-        lenis.stop();
-        lenis.options.infinite = true;
-        lenis.resize();
-        lenis.scrollTo(0, { immediate: true });
-        requestAnimationFrame(() => lenis.start());
+        if (homeList) animate(homeList, { y: 0, duration: 0 });
+        startInfiniteStrip();
       },
       sync: true,
     });
@@ -201,9 +332,8 @@ export function initHome({
     if (scrollThres) scrollThres.remove();
 
     if (homeList) animate(homeList, { y: 0, duration: 0 });
-    lenis.options.infinite = true;
-    lenis.resize();
     animate(".main", { opacity: 1, pointerEvents: "auto", duration: 0 });
+    startInfiniteStrip();
   }
 
   const homeItems = getHomeListItems();
@@ -220,38 +350,7 @@ export function initHome({
     initScrollReveal(cubicEase);
   }
 
-  document.querySelectorAll(".home_cms--link").forEach((link) => {
-    const crs = link.querySelector(".home_flw--crs");
-
-    link.addEventListener("mousemove", (e) => {
-      const linkRect = link.getBoundingClientRect();
-      const crsRect = crs.getBoundingClientRect();
-
-      const w = crsRect.width;
-      const h = crsRect.height;
-      const offsetX = 8;
-      const offsetY = 8;
-
-      const x = Math.min(
-        Math.max(e.clientX - linkRect.left - offsetX, 0),
-        Math.max(0, linkRect.width - w),
-      );
-      const y = Math.min(
-        Math.max(e.clientY - linkRect.top - offsetY, 0),
-        Math.max(0, linkRect.height - h),
-      );
-
-      crs.style.transform = `translate(${x}px, ${y}px)`;
-    });
-
-    link.addEventListener("mouseenter", () => {
-      animate(crs, { opacity: 1, duration: 800, ease: "inOut(1.68)" });
-    });
-
-    link.addEventListener("mouseleave", () => {
-      animate(crs, { opacity: 0, duration: 800, ease: "inOut(1.68)" });
-    });
-  });
+  document.querySelectorAll(".home_cms--link").forEach(attachLinkCursor);
 
   initDialog();
   /* Gallery Zoom */
@@ -368,6 +467,7 @@ export function destroyHome() {
     destroyGalleryZoom();
     destroyGalleryZoom = null;
   }
+  stopInfiniteStrip();
   if (lenis) {
     lenis.stop();
     lenis.destroy();
