@@ -126,7 +126,10 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
           ease: cubicEase,
         });
 
-        fade.then(() => {
+        // anime.js v4 animations have ONE `_resolve` slot — each `.then()`
+        // call overwrites the previous. Call `.then()` once per animation
+        // and chain on the returned real Promise.
+        const fadeDone = fade.then(() => {
           animate(".main", {
             opacity: 1,
             pointerEvents: "auto",
@@ -140,6 +143,12 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
           });
           if (lenis) lenis.start();
         });
+
+        const listDone = homeListAnim
+          ? homeListAnim.then(() => {})
+          : Promise.resolve();
+
+        Promise.all([fadeDone, listDone]).then(() => resolve());
       };
 
       const dismissOnScrollIntent = (e) => {
