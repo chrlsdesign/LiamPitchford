@@ -6,7 +6,6 @@ import {
   utils,
   createTimeline,
 } from "animejs";
-import Lenis from "lenis";
 import {
   detachIntroInterListeners,
   playSharedIntroIfPresent,
@@ -365,7 +364,7 @@ export function initHome({
     startInfiniteStrip();
     initScrollReveal(cubicEase);
   } else {
-    playSharedIntroIfPresent({ lenis: null, isHome: true }).then(() => {
+    playSharedIntroIfPresent({ isHome: true }).then(() => {
       updateIntroForPage(pageKey);
       startInfiniteStrip();
       initScrollReveal(cubicEase);
@@ -375,8 +374,6 @@ export function initHome({
   document.querySelectorAll(".home_cms--link").forEach(attachLinkCursor);
 
   initDialog();
-  /* Gallery Zoom */
-  //destroyGalleryZoom = initGalleryZoom();
 }
 
 function initDialog() {

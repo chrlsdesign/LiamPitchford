@@ -21,7 +21,7 @@ function unlockIntroBodyScroll() {
   document.body.style.overflow = "";
 }
 
-export function playHomeIntro({ lenis = null, isHome = false } = {}) {
+export function playHomeIntro({ isHome = false } = {}) {
   if (introInterAc) {
     introInterAc.abort();
     introInterAc = null;
@@ -141,7 +141,6 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
             duration: 400,
             ease: cubicEase,
           });
-          if (lenis) lenis.start();
         });
 
         const listDone = homeListAnim
@@ -182,7 +181,7 @@ export function detachIntroInterListeners() {
   unlockIntroBodyScroll();
 }
 
-/** @param {{ lenis?: object | null, isHome?: boolean }} [opts] */
+/** @param {{ isHome?: boolean }} [opts] */
 export function playSharedIntroIfPresent(opts) {
   if (!document.querySelector(".intro")) return Promise.resolve();
   return playHomeIntro(opts);

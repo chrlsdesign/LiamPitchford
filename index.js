@@ -107,8 +107,9 @@ class DefaultRenderer extends Renderer {
     const isWorkContent = wi !== -1 && wi < segs.length - 1;
     const isWorkList = wi !== -1 && wi === segs.length - 1;
 
-    // Destruct Lenis as soon as we *enter* a non-home route. Relying only on
-    // onLeaveCompleted + pathname can miss on mobile (URL may still be "/" when the hook runs).
+    // Tear down the home infinite strip as soon as we *enter* a non-home route.
+    // Relying only on onLeaveCompleted + pathname can miss on mobile (URL may
+    // still be "/" when the hook runs).
     if (!isHome) {
       destroyHome();
     }
@@ -145,7 +146,8 @@ class DefaultRenderer extends Renderer {
   onLeaveCompleted() {
     destroyWorkContent();
     const { segs } = routeSegments(window.location.pathname);
-    // Tear down Lenis when the *current* page is not home (leaving home, or any non-home route).
+    // Tear down the home infinite strip when the *current* page is not home
+    // (leaving home, or any non-home route).
     if (!isHomeSegments(segs)) destroyHome();
   }
 }
