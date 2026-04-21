@@ -93,11 +93,13 @@ function setHomeItemsBlurred(items) {
  * IntersectionObserver-based reveal. `onScroll` from anime.js can't see the
  * strip because the window never scrolls — the wrap is transformed instead —
  * so we watch real screen bounds, which update naturally with transforms.
+ * All items across the original list and both clones are observed so each
+ * instance reveals independently when it enters the viewport.
  */
 function initScrollReveal(cubicEase) {
-  const originalList = document.querySelector(".home_list:not(.is-clone)");
-  if (!originalList) return;
-  const items = originalList.querySelectorAll(".home_item");
+  const wrap = document.querySelector(".home_content--wrap");
+  if (!wrap) return;
+  const items = wrap.querySelectorAll(".home_item");
   if (!items.length) return;
 
   const io = new IntersectionObserver(
@@ -171,10 +173,9 @@ function startInfiniteStrip() {
     const c = origList.cloneNode(true);
     c.setAttribute("aria-hidden", "true");
     c.classList.add("is-clone");
-    // Clones never get the reveal blur — visual duplicates for looping only.
-    c.querySelectorAll(".home_item").forEach((el) => {
-      el.style.filter = "none";
-    });
+    // `cloneNode(true)` copies the blurred inline `filter` from each original
+    // item (set in `setHomeItemsBlurred`), so clones start blurred and reveal
+    // on their own as they scroll into view.
     return c;
   };
 

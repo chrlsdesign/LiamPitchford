@@ -147,8 +147,8 @@ export function playHomeIntro({ isHome = false } = {}) {
           : Promise.resolve();
 
         Promise.all([fadeDone, listDone]).then(() => {
-          resolve();
           unlockIntroBodyScroll();
+          resolve();
         });
       };
 
