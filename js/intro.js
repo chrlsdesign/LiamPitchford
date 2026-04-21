@@ -81,45 +81,9 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
     );
 
     tl.then(() => {
-      if (isHome) {
-        unlockIntroBodyScroll();
-        if (lenis) lenis.start();
-        animate(".main", { opacity: 1, pointerEvents: "auto", duration: 0 });
-
-        const ac = new AbortController();
-        introInterAc = ac;
-        const inter = document.querySelector(".inter");
-        if (inter) {
-          const isMobileLike =
-            window.matchMedia("(max-width: 991px)").matches ||
-            window.matchMedia("(pointer: coarse)").matches;
-          if (isMobileLike) {
-            animate(inter, { opacity: 0, pointerEvents: "none", duration: 0 });
-          } else {
-            animate(inter, { opacity: 1, pointerEvents: "auto", duration: 0 });
-            const animatable = createAnimatable(inter, {
-              x: { duration: 600, ease: "out(3)" },
-              y: { duration: 600, ease: "out(3)" },
-            });
-            document.addEventListener(
-              "mousemove",
-              (e) => {
-                animatable.x(e.clientX - inter.offsetWidth / 2);
-                animatable.y(e.clientY - inter.offsetHeight / 2);
-              },
-              { signal: ac.signal },
-            );
-          }
-        }
-
-        resolve();
-        return;
-      }
-
       introScrollPhase1Ac?.abort();
       introScrollPhase1Ac = null;
 
-      // Non-home: scroll still locked; enable .inter mousemove, first wheel/touch dismisses
       const ac = new AbortController();
       introInterAc = ac;
 
@@ -144,6 +108,22 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
         ac.abort();
         introInterAc = null;
         unlockIntroBodyScroll();
+
+        if (isHome) {
+          const homeList = document.querySelector(".home_list");
+          if (homeList)
+            animate(homeList, { y: 0, duration: 400, ease: cubicEase });
+          const paths = document.querySelectorAll(
+            ".intro .flower_group .front",
+          );
+          if (paths.length)
+            animate(paths, {
+              "fill-opacity": 0,
+              duration: 400,
+              ease: cubicEase,
+            });
+        }
+
         animate(".intro_center, .intro_btm, .inter", {
           opacity: 0,
           duration: 250,
@@ -203,7 +183,7 @@ export function playSharedIntroIfPresent(opts) {
 }
 
 const INTRO_PAGE_CONFIG = {
-  home: { opacity: 1, flowerY: "50%", fill: "#EE7F31", fillOpacity: 0.5 },
+  home: { opacity: 1, flowerY: "50%", fill: "#EE7F31", fillOpacity: 0 },
   about: { opacity: 1, flowerY: "50%", fill: "#EE7F31", fillOpacity: 0.5 },
   work: { opacity: 1, flowerY: "-50%", fill: "#ffffff", fillOpacity: 1 },
   workContent: {

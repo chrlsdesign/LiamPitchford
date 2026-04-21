@@ -1,11 +1,4 @@
-import {
-  animate,
-  cubicBezier,
-  createLayout,
-  onScroll,
-  utils,
-  createTimeline,
-} from "animejs";
+import { animate, cubicBezier, createLayout, onScroll, utils } from "animejs";
 import Lenis from "lenis";
 import {
   detachIntroInterListeners,
@@ -104,7 +97,6 @@ function initScrollReveal(cubicEase) {
     const observer = onScroll({
       target: item,
       repeat: false,
-      enter: "bottom top",
       onEnter: () => {
         if (played.has(item)) return;
         played.add(item);
@@ -205,8 +197,7 @@ function startInfiniteStrip() {
     el.querySelectorAll(".home_cms--link").forEach(attachLinkCursor);
   });
 
-  const getOrigH = () =>
-    originals.reduce((h, el) => h + el.offsetHeight, 0);
+  const getOrigH = () => originals.reduce((h, el) => h + el.offsetHeight, 0);
 
   const origH = getOrigH();
   let currentY = -origH;
@@ -301,7 +292,7 @@ export function initHome({
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
   if (playSharedIntro) {
-    const scrollThres = document.querySelector(".scroll-thres");
+    /* const scrollThres = document.querySelector(".scroll-thres");
     const tl = createTimeline();
 
     tl.add(homeList, { y: ["100vh", 0], duration: 4000 }, 0).add(
@@ -326,7 +317,8 @@ export function initHome({
       sync: true,
     });
 
-    introObs.link(tl);
+    introObs.link(tl); */
+    startInfiniteStrip();
   } else {
     const scrollThres = document.querySelector(".scroll-thres");
     if (scrollThres) scrollThres.remove();
@@ -345,6 +337,7 @@ export function initHome({
       document.body.style.overflow = "";
       updateIntroForPage(pageKey);
       initScrollReveal(cubicEase);
+      startInfiniteStrip();
     });
   } else {
     initScrollReveal(cubicEase);
