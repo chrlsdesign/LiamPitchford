@@ -287,7 +287,7 @@ function startInfiniteStrip() {
 
   const onTouchEnd = () => {
     touching = false;
-    velocity = touchVel * 1.25;
+    velocity = touchVel * 1.1;
   };
 
   const ac = new AbortController();

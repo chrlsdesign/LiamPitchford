@@ -188,7 +188,7 @@ export function playSharedIntroIfPresent(opts) {
 }
 
 const INTRO_PAGE_CONFIG = {
-  home: { opacity: 1, flowerY: "50%", fill: "#EE7F31", fillOpacity: 0.3 },
+  home: { opacity: 0.3, flowerY: "50%", fill: "#EE7F31", fillOpacity: 0.5 },
   about: { opacity: 1, flowerY: "50%", fill: "#EE7F31", fillOpacity: 0.5 },
   work: { opacity: 1, flowerY: "-50%", fill: "#ffffff", fillOpacity: 1 },
   workContent: {
