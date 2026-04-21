@@ -140,12 +140,6 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
           });
           if (lenis) lenis.start();
         });
-
-        // Resolve only after ALL intro exit motion is done so callers
-        // (home.js startInfiniteStrip) don't take over mid-animation.
-        const tasks = [fade];
-        if (homeListAnim) tasks.push(homeListAnim);
-        Promise.all(tasks).then(() => resolve());
       };
 
       const dismissOnScrollIntent = (e) => {
