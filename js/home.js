@@ -1,4 +1,11 @@
-import { animate, cubicBezier, createLayout, onScroll, utils } from "animejs";
+import {
+  animate,
+  cubicBezier,
+  createLayout,
+  onScroll,
+  utils,
+  createTimeline,
+} from "animejs";
 import Lenis from "lenis";
 import {
   detachIntroInterListeners,
@@ -167,7 +174,7 @@ function startInfiniteStrip() {
   if (!lenis) return;
   if (infiniteStrip) return;
 
-  const strip = document.querySelector(".home_list");
+  const strip = document.querySelector(".home_content--wrap");
   if (!strip) return;
 
   const originals = [...strip.children];
@@ -318,14 +325,12 @@ export function initHome({
     });
 
     introObs.link(tl); */
-    startInfiniteStrip();
   } else {
     const scrollThres = document.querySelector(".scroll-thres");
     if (scrollThres) scrollThres.remove();
 
     if (homeList) animate(homeList, { y: 0, duration: 0 });
     animate(".main", { opacity: 1, pointerEvents: "auto", duration: 0 });
-    startInfiniteStrip();
   }
 
   const homeItems = getHomeListItems();
@@ -337,7 +342,6 @@ export function initHome({
       document.body.style.overflow = "";
       updateIntroForPage(pageKey);
       initScrollReveal(cubicEase);
-      startInfiniteStrip();
     });
   } else {
     initScrollReveal(cubicEase);
