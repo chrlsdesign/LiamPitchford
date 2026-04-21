@@ -401,8 +401,8 @@ export function initHome({
   if (!playSharedIntro) {
     if (homeWrap) animate(homeWrap, { y: 0, duration: 0 });
     animate(".main", { opacity: 1, pointerEvents: "auto", duration: 0 });
-    animate(".home_list.is-clone", { opacity: 1, duration: 0 });
     startInfiniteStrip();
+    animate(".home_list.is-clone", { opacity: 1, duration: 0 });
     initScrollReveal(cubicEase);
   } else {
     playSharedIntroIfPresent({ isHome: true }).then(() => {
