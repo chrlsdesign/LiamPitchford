@@ -15,8 +15,6 @@ import {
 
 let scrollObservers = [];
 const played = new Set();
-let lenis = null;
-let lenisRafActive = false;
 let destroyGalleryZoom = null;
 let infiniteStrip = null;
 
@@ -25,15 +23,11 @@ const HOME_ITEM_BLUR_END = "blur(0px)";
 const HOME_LIST_MODAL_BLUR = "blur(12px)";
 
 function lockModalScroll() {
-  if (lenis) lenis.stop();
-  document.documentElement.style.overflow = "hidden";
-  document.body.style.overflow = "hidden";
+  if (infiniteStrip) infiniteStrip.stop();
 }
 
 function unlockModalScroll() {
-  document.documentElement.style.overflow = "";
-  document.body.style.overflow = "";
-  if (lenis) lenis.start();
+  if (infiniteStrip) infiniteStrip.start();
 }
 
 /**
@@ -84,8 +78,9 @@ function initHomeEmbedMediaAspectRatios(root = document) {
   });
 }
 
+/** Only the ORIGINAL list's items, never clones. */
 function getHomeListItems() {
-  const list = document.querySelector(".home_list");
+  const list = document.querySelector(".home_list:not(.is-clone)");
   return list ? [...list.querySelectorAll(".home_item")] : [];
 }
 
@@ -95,39 +90,38 @@ function setHomeItemsBlurred(items) {
   });
 }
 
+/**
+ * IntersectionObserver-based reveal. `onScroll` from anime.js can't see the
+ * strip because the window never scrolls — the wrap is transformed instead —
+ * so we watch real screen bounds, which update naturally with transforms.
+ */
 function initScrollReveal(cubicEase) {
-  const originalList = document.querySelector(".home_list");
+  const originalList = document.querySelector(".home_list:not(.is-clone)");
   if (!originalList) return;
   const items = originalList.querySelectorAll(".home_item");
+  if (!items.length) return;
 
-  items.forEach((item) => {
-    const observer = onScroll({
-      target: item,
-      repeat: false,
-      onEnter: () => {
-        if (played.has(item)) return;
-        played.add(item);
-        animate(item, {
-          filter: [HOME_ITEM_BLUR_START, HOME_ITEM_BLUR_END],
-          duration: 750,
-          ease: cubicEase,
-        });
-      },
-      onEnterBackward: () => {
-        if (played.has(item)) return;
-        played.add(item);
-        animate(item, {
-          filter: [HOME_ITEM_BLUR_START, HOME_ITEM_BLUR_END],
-          duration: 750,
-          ease: cubicEase,
-        });
-      },
-    });
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const item = entry.target;
+        if (!played.has(item)) {
+          played.add(item);
+          animate(item, {
+            filter: [HOME_ITEM_BLUR_START, HOME_ITEM_BLUR_END],
+            duration: 750,
+            ease: cubicEase,
+          });
+        }
+        io.unobserve(item);
+      }
+    },
+    { threshold: 0.01 },
+  );
 
-    lenis.on("scroll", () => observer.refresh());
-
-    scrollObservers.push(observer);
-  });
+  items.forEach((item) => io.observe(item));
+  scrollObservers.push({ revert: () => io.disconnect() });
 }
 
 function attachLinkCursor(link) {
@@ -165,99 +159,193 @@ function attachLinkCursor(link) {
 }
 
 /**
- * Custom infinite scroll for `.home_list`.
- * Clones originals above and below, translates the strip via transform, and
- * teleports at the boundaries. Feeds off Lenis' scroll delta so momentum still
- * feels smooth, but without Lenis' own `infinite: true` seam on mobile.
+ * Infinite loop scroll engine. Hierarchy:
+ *   `.home_content--wrap` (wrap/strip, transformed)
+ *     └─ `.home_list`      (grid — original + before/after clones)
+ *         └─ `.home_item`*
+ *
+ * Clones the whole `.home_list` grid before and after the original, hijacks
+ * wheel + touch, disables native scroll, and lerps/teleports the wrap. Based
+ * on Claude's `infinite-loop-scroll.html` reference.
  */
 function startInfiniteStrip() {
-  if (!lenis) return;
   if (infiniteStrip) return;
+  const wrap = document.querySelector(".home_content--wrap");
+  const origList = document.querySelector(".home_list:not(.is-clone)");
+  if (!wrap || !origList) return;
 
-  const strip = document.querySelector(".home_content--wrap");
-  if (!strip) return;
+  // Strip any inline transform left over from the intro (`.home_list { y: 0 }`)
+  // so our clones and wrap-level transform are the only motion we juggle.
+  origList.style.transform = "";
 
-  const originals = [...strip.children];
-  if (!originals.length) return;
-
-  const clonesBefore = originals.map((el) => {
-    const c = el.cloneNode(true);
+  const makeClone = () => {
+    const c = origList.cloneNode(true);
     c.setAttribute("aria-hidden", "true");
     c.classList.add("is-clone");
+    // Clones never get the reveal blur — visual duplicates for looping only.
+    c.querySelectorAll(".home_item").forEach((el) => {
+      el.style.filter = "none";
+    });
     return c;
-  });
-  const clonesAfter = originals.map((el) => {
-    const c = el.cloneNode(true);
-    c.setAttribute("aria-hidden", "true");
-    c.classList.add("is-clone");
-    return c;
-  });
-
-  for (let i = clonesBefore.length - 1; i >= 0; i--) {
-    strip.prepend(clonesBefore[i]);
-  }
-  clonesAfter.forEach((el) => strip.appendChild(el));
-
-  // Clones skip the reveal blur; they're duplicates for visual looping only.
-  [...clonesBefore, ...clonesAfter].forEach((el) => {
-    el.style.filter = "none";
-    el.querySelectorAll(".home_cms--link").forEach(attachLinkCursor);
-  });
-
-  const getOrigH = () => originals.reduce((h, el) => h + el.offsetHeight, 0);
-
-  const origH = getOrigH();
-  let currentY = -origH;
-  let targetY = -origH;
-  strip.style.transform = `translate3d(0, ${currentY}px, 0)`;
-
-  const onScrollDelta = (e) => {
-    const d = typeof e?.deltaY === "number" ? e.deltaY : 0;
-    if (d) targetY -= d;
   };
-  lenis.on("scroll", onScrollDelta);
 
+  const before = makeClone();
+  const after = makeClone();
+  wrap.insertBefore(before, origList);
+  wrap.appendChild(after);
+  wrap.style.willChange = "transform";
+
+  [before, after].forEach((list) => {
+    list.querySelectorAll(".home_cms--link").forEach(attachLinkCursor);
+  });
+
+  // Kill native scroll + pinch/scroll gestures — engine owns all vertical input.
+  const prev = {
+    htmlOverflow: document.documentElement.style.overflow,
+    bodyOverflow: document.body.style.overflow,
+    bodyTouchAction: document.body.style.touchAction,
+  };
+  document.documentElement.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
+  document.body.style.touchAction = "none";
+
+  const FRICTION = 0.075;
+  const WHEEL_SPEED = 0.8;
+  const TOUCH_SPEED = 1.0;
+  const MOMENTUM = 0.92;
+
+  let currentY = 0;
+  let targetY = 0;
+  let velocity = 0;
+  let initialized = false;
   let running = true;
+  let paused = false;
+
+  let touching = false;
+  let touchLastY = 0;
+  let touchVel = 0;
+  let touchLastT = 0;
+
+  const getOrigH = () => origList.offsetHeight;
+
   let rafId = 0;
-  const loop = () => {
+  const tick = () => {
     if (!running) return;
 
-    currentY += (targetY - currentY) * 0.075;
-
-    const h = getOrigH();
-    if (currentY > 0) {
-      currentY -= h;
-      targetY -= h;
-    }
-    if (currentY < -(2 * h)) {
-      currentY += h;
-      targetY += h;
+    // Defer initial offset into rAF so we read a laid-out height.
+    if (!initialized) {
+      const h = getOrigH();
+      currentY = -h;
+      targetY = -h;
+      initialized = true;
     }
 
-    strip.style.transform = `translate3d(0, ${Math.round(currentY)}px, 0)`;
-    rafId = requestAnimationFrame(loop);
+    if (!paused) {
+      if (!touching) {
+        targetY += velocity;
+        velocity *= MOMENTUM;
+        if (Math.abs(velocity) < 0.01) velocity = 0;
+      }
+      currentY += (targetY - currentY) * FRICTION;
+
+      const h = getOrigH();
+      // Strip layout: [beforeClone=h][original=h][afterClone=h]
+      // Teleport DOWN: user scrolled past originals into `after` → wrap to top.
+      if (currentY < -(2 * h)) {
+        currentY += h;
+        targetY += h;
+      }
+      // Teleport UP: user scrolled past originals into `before` → wrap to bottom.
+      if (currentY > 0) {
+        currentY -= h;
+        targetY -= h;
+      }
+    }
+
+    wrap.style.transform = `translate3d(0, ${Math.round(currentY)}px, 0)`;
+    rafId = requestAnimationFrame(tick);
   };
-  rafId = requestAnimationFrame(loop);
+  rafId = requestAnimationFrame(tick);
+
+  const onWheel = (e) => {
+    e.preventDefault();
+    if (paused) return;
+    targetY -= e.deltaY * WHEEL_SPEED;
+  };
+
+  const onTouchStart = (e) => {
+    if (paused) return;
+    touching = true;
+    touchLastY = e.touches[0].clientY;
+    touchVel = 0;
+    touchLastT = performance.now();
+    velocity = 0;
+  };
+
+  const onTouchMove = (e) => {
+    e.preventDefault();
+    if (paused) return;
+    const y = e.touches[0].clientY;
+    const now = performance.now();
+    const dt = now - touchLastT || 1;
+    const dy = (touchLastY - y) * TOUCH_SPEED;
+
+    targetY -= dy;
+    touchVel = (-dy / dt) * 16;
+    touchLastY = y;
+    touchLastT = now;
+  };
+
+  const onTouchEnd = () => {
+    touching = false;
+    velocity = touchVel * 12;
+  };
+
+  const ac = new AbortController();
+  window.addEventListener("wheel", onWheel, {
+    passive: false,
+    signal: ac.signal,
+  });
+  window.addEventListener("touchstart", onTouchStart, {
+    passive: true,
+    signal: ac.signal,
+  });
+  window.addEventListener("touchmove", onTouchMove, {
+    passive: false,
+    signal: ac.signal,
+  });
+  window.addEventListener("touchend", onTouchEnd, { signal: ac.signal });
 
   infiniteStrip = {
-    strip,
-    clones: [...clonesBefore, ...clonesAfter],
+    wrap,
+    origList,
+    clones: [before, after],
+    start() {
+      paused = false;
+    },
     stop() {
+      paused = true;
+      velocity = 0;
+      touching = false;
+    },
+    destroy() {
       running = false;
       if (rafId) cancelAnimationFrame(rafId);
-      rafId = 0;
-      if (lenis && typeof lenis.off === "function") {
-        lenis.off("scroll", onScrollDelta);
-      }
+      ac.abort();
+      before.remove();
+      after.remove();
+      wrap.style.transform = "";
+      wrap.style.willChange = "";
+      document.documentElement.style.overflow = prev.htmlOverflow;
+      document.body.style.overflow = prev.bodyOverflow;
+      document.body.style.touchAction = prev.bodyTouchAction;
     },
   };
 }
 
 function stopInfiniteStrip() {
   if (!infiniteStrip) return;
-  infiniteStrip.stop();
-  infiniteStrip.clones.forEach((el) => el.remove());
-  if (infiniteStrip.strip) infiniteStrip.strip.style.transform = "";
+  infiniteStrip.destroy();
   infiniteStrip = null;
 }
 
@@ -267,86 +355,36 @@ export function initHome({
   pageKey = "home",
 } = {}) {
   const hasSharedIntro = !!document.querySelector(".intro");
+  const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
+  const homeList = utils.$(".home_list")[0];
 
-  // Lenis is kept only as a smooth input layer. The infinite loop is handled
-  // by `startInfiniteStrip()` (custom clone + translate + teleport) to avoid
-  // Lenis' mobile seam jump at the wrap point.
-  lenis = new Lenis({
-    smoothWheel: true,
-    smoothTouch: true,
-    touchMultiplier: 1.25,
-  });
-
-  lenisRafActive = true;
-  function raf(time) {
-    if (!lenisRafActive || !lenis) return;
-    lenis.raf(time);
-    requestAnimationFrame(raf);
-  }
-  requestAnimationFrame(raf);
-
-  lenis.scrollTo(0, { immediate: true });
+  // Intro phase: lock scroll + park the list below the fold. The engine
+  // starts later (after intro dismiss) so it doesn't fight the y animation.
   if (playSharedIntro && hasSharedIntro) {
-    // Keep the intro deterministic by blocking all scroll input
-    // until shared intro animation has finished.
-    lenis.stop();
     document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
-  }
-
-  startInfiniteStrip();
-
-  //The rest starts here
-  const homeList = utils.$(".home_list")[0];
-  const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
-
-  if (playSharedIntro) {
-    /* const scrollThres = document.querySelector(".scroll-thres");
-    const tl = createTimeline();
-
-    tl.add(homeList, { y: ["100vh", 0], duration: 4000 }, 0).add(
-      ".intro_center, .intro_btm",
-      { opacity: 0 },
-      0,
-    );
-
-    const introObs = onScroll({
-      target: scrollThres,
-      enter: "top top",
-      leave: "top center",
-      onLeaveForward: function handler(self) {
-        self.revert();
-        if (scrollThres) scrollThres.remove();
-        detachIntroInterListeners();
-        animate(".inter", { opacity: 0, duration: 200, ease: cubicEase });
-        animate(".nav", { y: ["-100%", "0%"], duration: 400, ease: cubicEase });
-        if (homeList) animate(homeList, { y: 0, duration: 0 });
-        startInfiniteStrip();
-      },
-      sync: true,
-    });
-
-    introObs.link(tl); */
-  } else {
-    const scrollThres = document.querySelector(".scroll-thres");
-    if (scrollThres) scrollThres.remove();
-
-    if (homeList) animate(homeList, { y: 0, duration: 0 });
-    animate(".main", { opacity: 1, pointerEvents: "auto", duration: 0 });
+    if (homeList) animate(homeList, { y: "100vh", duration: 0 });
   }
 
   const homeItems = getHomeListItems();
   if (homeItems.length) setHomeItemsBlurred(homeItems);
 
-  if (playSharedIntro) {
-    playSharedIntroIfPresent({ lenis, isHome: true }).then(() => {
-      document.documentElement.style.overflow = "";
-      document.body.style.overflow = "";
+  if (!playSharedIntro) {
+    const scrollThres = document.querySelector(".scroll-thres");
+    if (scrollThres) scrollThres.remove();
+    if (homeList) animate(homeList, { y: 0, duration: 0 });
+    animate(".main", { opacity: 1, pointerEvents: "auto", duration: 0 });
+    startInfiniteStrip();
+    initScrollReveal(cubicEase);
+  } else {
+    // intro.js waits for the .home_list y-anim (400ms) to finish before
+    // resolving, so by the time we hit this .then() the list is at y:0 and
+    // safe to clone / translate.
+    playSharedIntroIfPresent({ lenis: null, isHome: true }).then(() => {
       updateIntroForPage(pageKey);
+      startInfiniteStrip();
       initScrollReveal(cubicEase);
     });
-  } else {
-    initScrollReveal(cubicEase);
   }
 
   document.querySelectorAll(".home_cms--link").forEach(attachLinkCursor);
@@ -444,11 +482,9 @@ function initDialog() {
 }
 
 function resetScrollReveal() {
-  // revert each observer
   scrollObservers.forEach((observer) => observer.revert());
   scrollObservers = [];
 
-  // reset clip-path back to hidden
   document.querySelectorAll(".home_item").forEach((item, i) => {
     const isOdd = i % 2 === 0;
     item.style.clipPath = isOdd
@@ -461,17 +497,12 @@ export function destroyHome() {
   detachIntroInterListeners();
   document.documentElement.style.overflow = "";
   document.body.style.overflow = "";
-  lenisRafActive = false;
+  document.body.style.touchAction = "";
   if (destroyGalleryZoom) {
     destroyGalleryZoom();
     destroyGalleryZoom = null;
   }
   stopInfiniteStrip();
-  if (lenis) {
-    lenis.stop();
-    lenis.destroy();
-    lenis = null;
-  }
   scrollObservers.forEach((observer) => observer.revert());
   scrollObservers = [];
   played.clear();

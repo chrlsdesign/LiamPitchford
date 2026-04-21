@@ -109,10 +109,15 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
         introInterAc = null;
         unlockIntroBodyScroll();
 
+        let homeListAnim = null;
         if (isHome) {
           const homeList = document.querySelector(".home_list");
           if (homeList)
-            animate(homeList, { y: 0, duration: 400, ease: cubicEase });
+            homeListAnim = animate(homeList, {
+              y: 0,
+              duration: 400,
+              ease: cubicEase,
+            });
           const paths = document.querySelectorAll(
             ".intro .flower_group .front",
           );
@@ -124,11 +129,13 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
             });
         }
 
-        animate(".intro_center, .intro_btm, .inter", {
+        const fade = animate(".intro_center, .intro_btm, .inter", {
           opacity: 0,
           duration: 250,
           ease: cubicEase,
-        }).then(() => {
+        });
+
+        fade.then(() => {
           animate(".main", {
             opacity: 1,
             pointerEvents: "auto",
@@ -141,8 +148,13 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
             ease: cubicEase,
           });
           if (lenis) lenis.start();
-          resolve();
         });
+
+        // Resolve only after ALL intro exit motion is done so callers
+        // (home.js startInfiniteStrip) don't take over mid-animation.
+        const tasks = [fade];
+        if (homeListAnim) tasks.push(homeListAnim);
+        Promise.all(tasks).then(() => resolve());
       };
 
       const dismissOnScrollIntent = (e) => {
