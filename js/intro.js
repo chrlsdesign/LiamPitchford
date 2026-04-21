@@ -8,17 +8,40 @@ import {
 const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
 let introInterAc = null;
-/** Blocks native scroll during opening timeline on non-home (wheel/touchmove preventDefault). */
-let introScrollPhase1Ac = null;
+/** Blocks native scroll during the whole intro (wheel/touchmove preventDefault). */
+let introScrollLockAc = null;
 
 function lockIntroBodyScroll() {
   document.documentElement.style.overflow = "hidden";
   document.body.style.overflow = "hidden";
+  // `overflow: hidden` alone doesn't stop iOS Safari touch scrolling — touch-action
+  // + overscroll-behavior do. Belt-and-suspenders with wheel/touchmove listeners below.
+  document.body.style.touchAction = "none";
+  document.body.style.overscrollBehavior = "none";
+
+  if (introScrollLockAc) introScrollLockAc.abort();
+  introScrollLockAc = new AbortController();
+  const blockScroll = (e) => e.preventDefault();
+  window.addEventListener("wheel", blockScroll, {
+    passive: false,
+    signal: introScrollLockAc.signal,
+  });
+  window.addEventListener("touchmove", blockScroll, {
+    passive: false,
+    signal: introScrollLockAc.signal,
+  });
 }
 
 function unlockIntroBodyScroll() {
   document.documentElement.style.overflow = "";
   document.body.style.overflow = "";
+  document.body.style.touchAction = "";
+  document.body.style.overscrollBehavior = "";
+
+  if (introScrollLockAc) {
+    introScrollLockAc.abort();
+    introScrollLockAc = null;
+  }
 }
 
 export function playHomeIntro({ isHome = false } = {}) {
@@ -26,30 +49,16 @@ export function playHomeIntro({ isHome = false } = {}) {
     introInterAc.abort();
     introInterAc = null;
   }
-  if (introScrollPhase1Ac) {
-    introScrollPhase1Ac.abort();
-    introScrollPhase1Ac = null;
-  }
   unlockIntroBodyScroll();
 
   const introEl = document.querySelector(".intro");
   if (!introEl) return Promise.resolve();
 
-  return new Promise((resolve) => {
-    if (!isHome) {
-      lockIntroBodyScroll();
-      introScrollPhase1Ac = new AbortController();
-      const blockScroll = (e) => e.preventDefault();
-      window.addEventListener("wheel", blockScroll, {
-        passive: false,
-        signal: introScrollPhase1Ac.signal,
-      });
-      window.addEventListener("touchmove", blockScroll, {
-        passive: false,
-        signal: introScrollPhase1Ac.signal,
-      });
-    }
+  // Lock scroll on every page for the full intro (opening timeline + wait for
+  // first-scroll dismiss). `unlockIntroBodyScroll` runs after dismiss completes.
+  lockIntroBodyScroll();
 
+  return new Promise((resolve) => {
     const tl = createTimeline({
       defaults: { duration: 700, ease: cubicEase },
     });
@@ -81,9 +90,6 @@ export function playHomeIntro({ isHome = false } = {}) {
     );
 
     tl.then(() => {
-      introScrollPhase1Ac?.abort();
-      introScrollPhase1Ac = null;
-
       const ac = new AbortController();
       introInterAc = ac;
 
@@ -181,10 +187,6 @@ export function detachIntroInterListeners() {
   if (introInterAc) {
     introInterAc.abort();
     introInterAc = null;
-  }
-  if (introScrollPhase1Ac) {
-    introScrollPhase1Ac.abort();
-    introScrollPhase1Ac = null;
   }
   unlockIntroBodyScroll();
 }
