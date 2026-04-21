@@ -280,14 +280,14 @@ function startInfiniteStrip() {
     const dy = (touchLastY - y) * TOUCH_SPEED;
 
     targetY -= dy;
-    touchVel = (-dy / dt) * 16;
+    touchVel = (-dy / dt) * 3;
     touchLastY = y;
     touchLastT = now;
   };
 
   const onTouchEnd = () => {
     touching = false;
-    velocity = touchVel * 12;
+    velocity = touchVel * 1;
   };
 
   const ac = new AbortController();
