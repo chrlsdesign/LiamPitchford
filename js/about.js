@@ -28,7 +28,7 @@ function collectAboutSplits(container) {
 
 function runAboutPageIntro(splits) {
   const spduration = 750;
-  const spstagger = 50;
+  const spstagger = 25;
   let aboutPDuration = 0;
 
   splits.forEach(({ split, cls }) => {
