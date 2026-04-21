@@ -110,15 +110,6 @@ export function playHomeIntro({ isHome = false } = {}) {
         unlockIntroBodyScroll();
 
         let homeListAnim = null;
-        if (isHome) {
-          const homeList = document.querySelector(".home_content--wrap");
-          if (homeList)
-            homeListAnim = animate(homeList, {
-              y: ["100vh", 0],
-              duration: 400,
-              ease: cubicEase,
-            });
-        }
 
         const fade = animate(".intro_center, .intro_btm, .inter", {
           opacity: 0,
@@ -130,6 +121,15 @@ export function playHomeIntro({ isHome = false } = {}) {
         // call overwrites the previous. Call `.then()` once per animation
         // and chain on the returned real Promise.
         const fadeDone = fade.then(() => {
+          if (isHome) {
+            const homeWrap = document.querySelector(".home_wrap");
+            if (homeWrap)
+              homeListAnim = animate(homeWrap, {
+                y: ["100vh", 0],
+                duration: 400,
+                ease: cubicEase,
+              });
+          }
           animate(".main", {
             opacity: 1,
             pointerEvents: "auto",
@@ -137,7 +137,7 @@ export function playHomeIntro({ isHome = false } = {}) {
             ease: cubicEase,
           });
           animate(".nav", {
-            y: "0%",
+            y: ["-100%", "0%"],
             duration: 400,
             ease: cubicEase,
           });
