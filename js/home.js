@@ -189,11 +189,8 @@ function startInfiniteStrip() {
   });
 
   // Kill native scroll + pinch/scroll gestures — engine owns all vertical input.
-  const prev = {
-    htmlOverflow: document.documentElement.style.overflow,
-    bodyOverflow: document.body.style.overflow,
-    bodyTouchAction: document.body.style.touchAction,
-  };
+  // `destroyHome` is the single owner of restoring these when leaving the page,
+  // so the engine doesn't snapshot/restore them here.
   document.documentElement.style.overflow = "hidden";
   document.body.style.overflow = "hidden";
   document.body.style.touchAction = "none";
@@ -325,9 +322,6 @@ function startInfiniteStrip() {
       after.remove();
       wrap.style.transform = "";
       wrap.style.willChange = "";
-      document.documentElement.style.overflow = prev.htmlOverflow;
-      document.body.style.overflow = prev.bodyOverflow;
-      document.body.style.touchAction = prev.bodyTouchAction;
     },
   };
 }
@@ -348,11 +342,11 @@ export function initHome({
   const homeList = utils.$(".home_list")[0];
 
   if (playSharedIntro && hasSharedIntro) {
+    // Lock the page while the intro is on screen; strip engine is started
+    // only after the intro dismisses (see `.then(...)` branch below).
     document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
     if (homeList) animate(homeList, { y: "100vh", duration: 0 });
-    startInfiniteStrip();
-    initScrollReveal(cubicEase);
   }
 
   const homeItems = getHomeListItems();
@@ -477,14 +471,16 @@ function resetScrollReveal() {
 
 export function destroyHome() {
   detachIntroInterListeners();
-  document.documentElement.style.overflow = "";
-  document.body.style.overflow = "";
-  document.body.style.touchAction = "";
   if (destroyGalleryZoom) {
     destroyGalleryZoom();
     destroyGalleryZoom = null;
   }
+  // Tear the strip down first, then clear the page-level locks, so nothing
+  // writes overflow/touch-action back on after us.
   stopInfiniteStrip();
+  document.documentElement.style.overflow = "";
+  document.body.style.overflow = "";
+  document.body.style.touchAction = "";
   scrollObservers.forEach((observer) => observer.revert());
   scrollObservers = [];
   played.clear();
