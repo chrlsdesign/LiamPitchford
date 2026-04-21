@@ -294,6 +294,8 @@ export function initHome({
     document.body.style.overflow = "hidden";
   }
 
+  startInfiniteStrip();
+
   //The rest starts here
   const homeList = utils.$(".home_list")[0];
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
