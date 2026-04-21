@@ -122,12 +122,16 @@ export function playHomeIntro({ isHome = false } = {}) {
         const fadeDone = fade.then(() => {
           if (isHome) {
             const homeWrap = document.querySelector(".home_wrap");
-            if (homeWrap)
-              homeListAnim = animate(homeWrap, {
+            if (homeWrap) homeListAnim = createTimeline();
+            homeListAnim
+              .add(homeWrap, {
                 y: ["100vh", 0],
-                opacity: [0, 1],
                 duration: 1000,
                 ease: cubicEase,
+              })
+              .add(".home_list.is-clone", {
+                opacity: [0, 1],
+                duration: 500,
               });
           }
           animate(".main", {
