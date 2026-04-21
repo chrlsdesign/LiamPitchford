@@ -118,15 +118,6 @@ export function playHomeIntro({ lenis = null, isHome = false } = {}) {
               duration: 400,
               ease: cubicEase,
             });
-          const paths = document.querySelectorAll(
-            ".intro .flower_group .front",
-          );
-          if (paths.length)
-            animate(paths, {
-              "fill-opacity": 0,
-              duration: 400,
-              ease: cubicEase,
-            });
         }
 
         const fade = animate(".intro_center, .intro_btm, .inter", {
@@ -195,7 +186,7 @@ export function playSharedIntroIfPresent(opts) {
 }
 
 const INTRO_PAGE_CONFIG = {
-  home: { opacity: 1, flowerY: "50%", fill: "#EE7F31", fillOpacity: 0 },
+  home: { opacity: 1, flowerY: "50%", fill: "#EE7F31", fillOpacity: 0.3 },
   about: { opacity: 1, flowerY: "50%", fill: "#EE7F31", fillOpacity: 0.5 },
   work: { opacity: 1, flowerY: "-50%", fill: "#ffffff", fillOpacity: 1 },
   workContent: {
