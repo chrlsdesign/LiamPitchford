@@ -158,16 +158,6 @@ function attachLinkCursor(link) {
   });
 }
 
-/**
- * Infinite loop scroll engine. Hierarchy:
- *   `.home_content--wrap` (wrap/strip, transformed)
- *     └─ `.home_list`      (grid — original + before/after clones)
- *         └─ `.home_item`*
- *
- * Clones the whole `.home_list` grid before and after the original, hijacks
- * wheel + touch, disables native scroll, and lerps/teleports the wrap. Based
- * on Claude's `infinite-loop-scroll.html` reference.
- */
 function startInfiniteStrip() {
   if (infiniteStrip) return;
   const wrap = document.querySelector(".home_content--wrap");
@@ -358,28 +348,23 @@ export function initHome({
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
   const homeList = utils.$(".home_list")[0];
 
-  // Intro phase: lock scroll + park the list below the fold. The engine
-  // starts later (after intro dismiss) so it doesn't fight the y animation.
   if (playSharedIntro && hasSharedIntro) {
     document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
     if (homeList) animate(homeList, { y: "100vh", duration: 0 });
+    startInfiniteStrip();
+    initScrollReveal(cubicEase);
   }
 
   const homeItems = getHomeListItems();
   if (homeItems.length) setHomeItemsBlurred(homeItems);
 
   if (!playSharedIntro) {
-    const scrollThres = document.querySelector(".scroll-thres");
-    if (scrollThres) scrollThres.remove();
     if (homeList) animate(homeList, { y: 0, duration: 0 });
     animate(".main", { opacity: 1, pointerEvents: "auto", duration: 0 });
     startInfiniteStrip();
     initScrollReveal(cubicEase);
   } else {
-    // intro.js waits for the .home_list y-anim (400ms) to finish before
-    // resolving, so by the time we hit this .then() the list is at y:0 and
-    // safe to clone / translate.
     playSharedIntroIfPresent({ lenis: null, isHome: true }).then(() => {
       updateIntroForPage(pageKey);
       startInfiniteStrip();
