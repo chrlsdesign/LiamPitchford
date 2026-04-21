@@ -125,6 +125,7 @@ export function playHomeIntro({ isHome = false } = {}) {
             if (homeWrap)
               homeListAnim = animate(homeWrap, {
                 y: ["100vh", 0],
+                opacity: [0, 1],
                 duration: 1000,
                 ease: cubicEase,
               });
