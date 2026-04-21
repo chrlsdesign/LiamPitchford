@@ -111,10 +111,10 @@ export function playHomeIntro({ isHome = false } = {}) {
 
         let homeListAnim = null;
         if (isHome) {
-          const homeList = document.querySelector(".home_list");
+          const homeList = document.querySelector(".home_content--wrap");
           if (homeList)
             homeListAnim = animate(homeList, {
-              y: 0,
+              y: ["100vh", 0],
               duration: 400,
               ease: cubicEase,
             });
