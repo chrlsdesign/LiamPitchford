@@ -174,15 +174,17 @@ function attachLinkCursor(link) {
   });
 }
 
-function startInfiniteStrip() {
-  if (infiniteStrip) return;
+/**
+ * Clone the original `.home_list` once (before + after) and pair items by
+ * index. Safe to call multiple times — only runs if clones don't already
+ * exist. Must run before `startInfiniteStrip` (and can run before the intro
+ * dismiss so the intro timeline can target `.home_list.is-clone`).
+ */
+function insertStripClones() {
   const wrap = document.querySelector(".home_content--wrap");
   const origList = document.querySelector(".home_list:not(.is-clone)");
   if (!wrap || !origList) return;
-
-  // Strip any inline transform left over from the intro (`.home_list { y: 0 }`)
-  // so our clones and wrap-level transform are the only motion we juggle.
-  origList.style.transform = "";
+  if (wrap.querySelector(".home_list.is-clone")) return;
 
   const makeClone = () => {
     const c = origList.cloneNode(true);
@@ -198,7 +200,6 @@ function startInfiniteStrip() {
   const after = makeClone();
   wrap.insertBefore(before, origList);
   wrap.appendChild(after);
-  wrap.style.willChange = "transform";
 
   [before, after].forEach((list) => {
     list.querySelectorAll(".home_cms--link").forEach(attachLinkCursor);
@@ -213,6 +214,22 @@ function startInfiniteStrip() {
     const group = [item, beforeItems[i], afterItems[i]].filter(Boolean);
     group.forEach((el) => itemGroups.set(el, group));
   });
+}
+
+function startInfiniteStrip() {
+  if (infiniteStrip) return;
+  const wrap = document.querySelector(".home_content--wrap");
+  const origList = document.querySelector(".home_list:not(.is-clone)");
+  if (!wrap || !origList) return;
+
+  // Make sure clones are in place (no-op if `insertStripClones` already ran).
+  insertStripClones();
+
+  const before = wrap.querySelectorAll(".home_list.is-clone")[0];
+  const after = wrap.querySelectorAll(".home_list.is-clone")[1];
+
+  origList.style.transform = "";
+  wrap.style.willChange = "transform";
 
   // Kill native scroll + pinch/scroll gestures — engine owns all vertical input.
   // `destroyHome` is the single owner of restoring these when leaving the page,
@@ -365,22 +382,26 @@ export function initHome({
 } = {}) {
   const hasSharedIntro = !!document.querySelector(".intro");
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
-  const homeList = utils.$(".home_list")[0];
-
-  if (playSharedIntro && hasSharedIntro) {
-    // Lock the page while the intro is on screen; strip engine is started
-    // only after the intro dismisses (see `.then(...)` branch below).
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
-    if (homeList) animate(homeList, { y: "100vh", duration: 0 });
-  }
+  const homeWrap = document.querySelector(".home_wrap");
 
   const homeItems = getHomeListItems();
   if (homeItems.length) setHomeItemsBlurred(homeItems);
 
+  if (playSharedIntro && hasSharedIntro) {
+    // Lock the page while the intro is on screen and park the whole home
+    // block off-screen. `intro.js` slides `.home_wrap` back up during dismiss.
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    if (homeWrap) animate(homeWrap, { y: "100vh", duration: 0 });
+    // Clones need to exist BEFORE the intro dismiss timeline runs so it can
+    // target `.home_list.is-clone` (engine starts later, after dismiss).
+    insertStripClones();
+  }
+
   if (!playSharedIntro) {
-    if (homeList) animate(homeList, { y: 0, duration: 0 });
+    if (homeWrap) animate(homeWrap, { y: 0, duration: 0 });
     animate(".main", { opacity: 1, pointerEvents: "auto", duration: 0 });
+    animate(".home_list.is-clone", { opacity: 1, duration: 0 });
     startInfiniteStrip();
     initScrollReveal(cubicEase);
   } else {
