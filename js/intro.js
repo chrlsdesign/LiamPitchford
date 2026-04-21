@@ -107,7 +107,6 @@ export function playHomeIntro({ isHome = false } = {}) {
       const dismiss = () => {
         ac.abort();
         introInterAc = null;
-        unlockIntroBodyScroll();
 
         let homeListAnim = null;
 
@@ -126,7 +125,7 @@ export function playHomeIntro({ isHome = false } = {}) {
             if (homeWrap)
               homeListAnim = animate(homeWrap, {
                 y: ["100vh", 0],
-                duration: 400,
+                duration: 1000,
                 ease: cubicEase,
               });
           }
@@ -147,7 +146,10 @@ export function playHomeIntro({ isHome = false } = {}) {
           ? homeListAnim.then(() => {})
           : Promise.resolve();
 
-        Promise.all([fadeDone, listDone]).then(() => resolve());
+        Promise.all([fadeDone, listDone]).then(() => {
+          resolve();
+          unlockIntroBodyScroll();
+        });
       };
 
       const dismissOnScrollIntent = (e) => {
