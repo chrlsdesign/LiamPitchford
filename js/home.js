@@ -280,7 +280,7 @@ function startInfiniteStrip() {
     const dy = (touchLastY - y) * TOUCH_SPEED;
 
     targetY -= dy;
-    touchVel = (-dy / dt) * 7;
+    touchVel = (-dy / dt) * 12;
     touchLastY = y;
     touchLastT = now;
   };
