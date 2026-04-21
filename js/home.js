@@ -14,6 +14,9 @@ import {
 
 let scrollObservers = [];
 const played = new Set();
+/** Maps every `.home_item` (original + both clones) to its 3-copy group, so a
+ * reveal on any copy marks the other two as played (no re-animation on loop). */
+const itemGroups = new WeakMap();
 let destroyGalleryZoom = null;
 let infiniteStrip = null;
 
@@ -107,15 +110,27 @@ function initScrollReveal(cubicEase) {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
         const item = entry.target;
-        if (!played.has(item)) {
-          played.add(item);
-          animate(item, {
-            filter: [HOME_ITEM_BLUR_START, HOME_ITEM_BLUR_END],
-            duration: 750,
-            ease: cubicEase,
-          });
+        if (played.has(item)) {
+          io.unobserve(item);
+          continue;
         }
-        io.unobserve(item);
+
+        const group = itemGroups.get(item) || [item];
+        group.forEach((el) => {
+          played.add(el);
+          io.unobserve(el);
+          // Only the intersecting copy animates; the off-screen siblings jump
+          // straight to the cleared state so the user never sees them re-reveal.
+          if (el === item) {
+            animate(el, {
+              filter: [HOME_ITEM_BLUR_START, HOME_ITEM_BLUR_END],
+              duration: 750,
+              ease: cubicEase,
+            });
+          } else {
+            el.style.filter = HOME_ITEM_BLUR_END;
+          }
+        });
       }
     },
     { threshold: 0.01 },
@@ -187,6 +202,16 @@ function startInfiniteStrip() {
 
   [before, after].forEach((list) => {
     list.querySelectorAll(".home_cms--link").forEach(attachLinkCursor);
+  });
+
+  // Pair each item with its clones by index so the reveal observer can treat
+  // all three copies as one — revealing any copy marks the others played.
+  const origItems = [...origList.querySelectorAll(".home_item")];
+  const beforeItems = [...before.querySelectorAll(".home_item")];
+  const afterItems = [...after.querySelectorAll(".home_item")];
+  origItems.forEach((item, i) => {
+    const group = [item, beforeItems[i], afterItems[i]].filter(Boolean);
+    group.forEach((el) => itemGroups.set(el, group));
   });
 
   // Kill native scroll + pinch/scroll gestures — engine owns all vertical input.
