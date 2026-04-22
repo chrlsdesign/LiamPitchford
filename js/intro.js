@@ -198,16 +198,49 @@ export function playSharedIntroIfPresent(opts) {
 }
 
 const INTRO_PAGE_CONFIG = {
-  home: { opacity: 0.3, flowerY: "50%", fill: "#EE7F31", fillOpacity: 0.5 },
-  about: { opacity: 1, flowerY: "50%", fill: "#EE7F31", fillOpacity: 0.5 },
-  work: { opacity: 1, flowerY: "-50%", fill: "#ffffff", fillOpacity: 1 },
+  home: {
+    opacity: 0.3,
+    flowerY: "50%",
+    fill: "#EE7F31",
+    fillOpacity: 0.5,
+    mobile: { flowerY: "25%" },
+  },
+  about: {
+    opacity: 1,
+    flowerY: "50%",
+    fill: "#EE7F31",
+    fillOpacity: 0.5,
+    mobile: { flowerY: "25%" },
+  },
+  work: {
+    opacity: 1,
+    flowerY: "-50%",
+    fill: "#ffffff",
+    fillOpacity: 1,
+    mobile: { flowerY: "-25%" },
+  },
   workContent: {
     opacity: 0,
     flowerY: "-50%",
     fill: "#EE7F31",
     fillOpacity: 0.5,
+    mobile: { flowerY: "-25%" },
   },
 };
+
+const MOBILE_INTRO_MQ =
+  typeof window !== "undefined"
+    ? window.matchMedia("(max-width: 576px)")
+    : null;
+
+function resolveIntroConfig(page) {
+  const base = INTRO_PAGE_CONFIG[page];
+  if (!base) return null;
+  if (MOBILE_INTRO_MQ?.matches && base.mobile) {
+    return { ...base, ...base.mobile };
+  }
+  return base;
+}
 
 let defaultFill = null;
 
@@ -224,7 +257,7 @@ export function updateIntroForPage(page) {
   const introEl = document.querySelector(".intro");
   if (!introEl) return;
 
-  const config = INTRO_PAGE_CONFIG[page];
+  const config = resolveIntroConfig(page);
   if (!config) return;
 
   const flowerGroup = introEl.querySelector(".flower_group");
