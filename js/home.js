@@ -238,10 +238,13 @@ function startInfiniteStrip() {
   document.body.style.overflow = "hidden";
   document.body.style.touchAction = "none";
 
-  const FRICTION = 0.075;
+  // Tablet & below feel snappier with more momentum decay + stiffer pull.
+  // Desktop keeps the original glidier feel.
+  const MOBILE_MQ = window.matchMedia("(max-width: 991px)");
+  let MOMENTUM = MOBILE_MQ.matches ? 0.85 : 0.92;
+  let FRICTION = MOBILE_MQ.matches ? 0.12 : 0.075;
   const WHEEL_SPEED = 0.8;
   const TOUCH_SPEED = 1.0;
-  const MOMENTUM = 0.92;
 
   let currentY = 0;
   let targetY = 0;
@@ -252,6 +255,7 @@ function startInfiniteStrip() {
 
   let touching = false;
   let touchLastY = 0;
+  let touchProcessedY = 0;
   let touchVel = 0;
   let touchLastT = 0;
 
@@ -270,7 +274,19 @@ function startInfiniteStrip() {
     }
 
     if (!paused) {
-      if (!touching) {
+      if (touching) {
+        // Consume any touchmove samples that arrived since the last frame in
+        // one pass — keeps the touchmove handler itself near-empty.
+        if (touchLastY !== touchProcessedY) {
+          const now = performance.now();
+          const dt = now - touchLastT || 16;
+          const dy = (touchProcessedY - touchLastY) * TOUCH_SPEED;
+          targetY -= dy;
+          touchVel = (-dy / dt) * 16;
+          touchProcessedY = touchLastY;
+          touchLastT = now;
+        }
+      } else {
         targetY += velocity;
         velocity *= MOMENTUM;
         if (Math.abs(velocity) < 0.01) velocity = 0;
@@ -305,24 +321,20 @@ function startInfiniteStrip() {
   const onTouchStart = (e) => {
     if (paused) return;
     touching = true;
-    touchLastY = e.touches[0].clientY;
+    const y = e.touches[0].clientY;
+    touchLastY = y;
+    touchProcessedY = y;
     touchVel = 0;
     touchLastT = performance.now();
     velocity = 0;
   };
 
+  // Hot path — keep this as cheap as possible. All deltas/velocity math
+  // happens in tick() so multiple events per frame collapse into one update.
   const onTouchMove = (e) => {
     e.preventDefault();
     if (paused) return;
-    const y = e.touches[0].clientY;
-    const now = performance.now();
-    const dt = now - touchLastT || 1;
-    const dy = (touchLastY - y) * TOUCH_SPEED;
-
-    targetY -= dy;
-    touchVel = (-dy / dt) * 16;
-    touchLastY = y;
-    touchLastT = now;
+    touchLastY = e.touches[0].clientY;
   };
 
   const onTouchEnd = () => {
@@ -344,6 +356,14 @@ function startInfiniteStrip() {
     signal: ac.signal,
   });
   window.addEventListener("touchend", onTouchEnd, { signal: ac.signal });
+
+  const onBreakpointChange = (e) => {
+    MOMENTUM = e.matches ? 0.85 : 0.92;
+    FRICTION = e.matches ? 0.12 : 0.075;
+  };
+  MOBILE_MQ.addEventListener("change", onBreakpointChange, {
+    signal: ac.signal,
+  });
 
   infiniteStrip = {
     wrap,
