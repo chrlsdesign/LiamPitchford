@@ -199,7 +199,7 @@ export function playSharedIntroIfPresent(opts) {
 
 const INTRO_PAGE_CONFIG = {
   home: {
-    opacity: 0.3,
+    opacity: 0,
     flowerY: "50%",
     fill: "#EE7F31",
     fillOpacity: 0.5,
