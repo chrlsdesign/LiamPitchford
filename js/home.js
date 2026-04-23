@@ -464,17 +464,17 @@ function initDialog() {
   let lastModalListDuration = 400;
 
   const closeModal = (e) => {
-    unlockModalScroll();
     const duration = lastModalListDuration;
+    let $item;
     if (homeList) {
       animate(homeList, {
         opacity: 1,
         filter: HOME_ITEM_BLUR_END,
         duration,
         ease: cubicEase,
+        onComplete: () => unlockModalScroll(),
       });
     }
-    let $item;
     modalLayout.update(({ root }) => {
       $dialog.close();
       $item = gItems.find((item) => item.classList.contains("is-open"));
