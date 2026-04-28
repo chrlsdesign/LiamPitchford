@@ -94,6 +94,7 @@ export function playHomeIntro({ isHome = false } = {}) {
       introInterAc = ac;
 
       const inter = document.querySelector(".inter");
+      const svg = document.querySelector(".intro_flower");
       if (inter) {
         const animatable = createAnimatable(inter, {
           x: { duration: 600, ease: "out(3)" },
@@ -102,9 +103,18 @@ export function playHomeIntro({ isHome = false } = {}) {
         document.addEventListener(
           "mousemove",
           (e) => {
+            const rect = svg.getBoundingClientRect();
+            const vb = svg.viewBox.baseVal;
+
+            const scaleX = vb.width / rect.width;
+            const scaleY = vb.height / rect.height;
+
+            const x = (e.clientX - rect.left) * scaleX - inter.offsetWidth / 2;
+            const y = (e.clientY - rect.top) * scaleY - inter.offsetHeight / 2;
+
             animate(inter, { opacity: 1, duration: 250 });
-            animatable.x(e.clientX - inter.offsetWidth / 2);
-            animatable.y(e.clientY - inter.offsetHeight / 2);
+            animatable.x(x);
+            animatable.y(y);
           },
           { signal: ac.signal },
         );
