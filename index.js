@@ -48,7 +48,16 @@ function copyEmail(sourceEl) {
     document.querySelector("[data-email]")?.getAttribute("data-email") ||
     "";
   if (!email) return;
+  copy(email);
+}
 
+updateTime();
+setInterval(updateTime, 1000);
+
+document.addEventListener("click", (event) => {
+  const emailEl = event.target.closest("[data-email]");
+  if (!emailEl) return;
+  event.preventDefault();
   animate(".notification", {
     y: ["250%", "0%"],
     duration: 1000,
@@ -63,16 +72,6 @@ function copyEmail(sourceEl) {
       fill: "forwards",
     });
   });
-  copy(email);
-}
-
-updateTime();
-setInterval(updateTime, 1000);
-
-document.addEventListener("click", (event) => {
-  const emailEl = event.target.closest("[data-email]");
-  if (!emailEl) return;
-  event.preventDefault();
   copyEmail(emailEl);
 });
 
