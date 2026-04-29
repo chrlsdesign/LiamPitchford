@@ -4,6 +4,7 @@ import { initAbout } from "./js/about.js";
 import { initWork } from "./js/work.js";
 import { initWorkContent, destroyWorkContent } from "./js/work-content.js";
 import { updateIntroForPage } from "./js/intro.js";
+import { animate } from "animejs";
 
 /** 1 = first paint after full page load / refresh; 2+ = Taxi swaps (same JS session). */
 let taxiContentEnterCount = 0;
