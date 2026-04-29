@@ -61,17 +61,18 @@ document.addEventListener("click", (event) => {
   event.preventDefault();
   animate(".notification", {
     y: ["250%", "0%"],
-    duration: 1000,
-    easing: "ease",
+    duration: 500,
+    easing: "inOut(1.68)",
     fill: "forwards",
-  }).finished.then(() => {
-    animate(".notification", {
-      y: ["0%", "250%"],
-      duration: 1000,
-      delay: 3000,
-      easing: "ease",
-      fill: "forwards",
-    });
+    onComplete: () => {
+      animate(".notification", {
+        y: ["0%", "250%"],
+        duration: 500,
+        delay: 3000,
+        easing: "inOut(1.68)",
+        fill: "forwards",
+      });
+    },
   });
   copyEmail(emailEl);
 });
