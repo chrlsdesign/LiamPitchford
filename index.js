@@ -10,7 +10,7 @@ let taxiContentEnterCount = 0;
 
 console.log(
   "%c Developed by CHRLS DESIGN - https://chrls.design",
-  "background: #000; color: #fff; display: block; padding:5px; padding-right: 10px;"
+  "background: #000; color: #fff; display: block; padding:5px; padding-right: 10px;",
 );
 
 function routeSegments(pathname) {
@@ -22,8 +22,7 @@ function routeSegments(pathname) {
 function isHomeSegments(segs) {
   return (
     segs.length === 0 ||
-    (segs.length === 1 &&
-      (segs[0] === "index.html" || segs[0] === "index.htm"))
+    (segs.length === 1 && (segs[0] === "index.html" || segs[0] === "index.htm"))
   );
 }
 
@@ -49,6 +48,21 @@ function copyEmail(sourceEl) {
     document.querySelector("[data-email]")?.getAttribute("data-email") ||
     "";
   if (!email) return;
+
+  animate(".notification", {
+    y: ["250%", "0%"],
+    duration: 1000,
+    easing: "ease",
+    fill: "forwards",
+  }).finished.then(() => {
+    animate(".notification", {
+      y: ["0%", "250%"],
+      duration: 1000,
+      delay: 3000,
+      easing: "ease",
+      fill: "forwards",
+    });
+  });
   copy(email);
 }
 
