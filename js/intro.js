@@ -3,6 +3,7 @@ import {
   createAnimatable,
   createTimeline,
   cubicBezier,
+  utils,
 } from "animejs";
 
 const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
@@ -272,6 +273,15 @@ export function updateIntroForPage(page) {
 
   const flowerGroup = introEl.querySelector(".flower_group");
   const paths = introEl.querySelectorAll(".flower_group .front");
+
+  // Cancel any in-flight intro tweens before starting a new one. anime.js v4
+  // doesn't auto-replace, so back-to-back navigations (e.g. work -> workContent
+  // while the 1500ms flower tween is still running) leave two timelines
+  // fighting over `.intro` opacity, which shows up as the abrupt jump-to-0
+  // on home / workContent (both target opacity 0).
+  utils.remove(introEl);
+  if (flowerGroup) utils.remove(flowerGroup);
+  if (paths.length) utils.remove(paths);
 
   if (defaultFill === null && paths.length) {
     defaultFill = getComputedStyle(paths[0]).fill;
