@@ -246,10 +246,22 @@ function startInfiniteStrip() {
   const WHEEL_SPEED = 0.8;
   const TOUCH_SPEED = 1.0;
 
-  let currentY = 0;
-  let targetY = 0;
+  // Park the wrap on the original list synchronously, before returning. This
+  // forces a single layout (offsetHeight) but guarantees the very first paint
+  // after page swap shows `origList` instead of `beforeClone`. Without this
+  // the rAF below sets the transform on the next frame, leaving one painted
+  // frame where the strip looks "scrolled" (the before-clone is at y: 0).
+  const initH = origList.offsetHeight;
+  if (initH > 0) {
+    wrap.style.transform = `translate3d(0, ${-initH}px, 0)`;
+  }
+
+  let currentY = -initH;
+  let targetY = -initH;
   let velocity = 0;
-  let initialized = false;
+  // Only mark initialized if the height read produced a real value. Otherwise
+  // let the rAF safety net below pick up the real height on the next frame.
+  let initialized = initH > 0;
   let running = true;
   let paused = false;
 
@@ -265,7 +277,8 @@ function startInfiniteStrip() {
   const tick = () => {
     if (!running) return;
 
-    // Defer initial offset into rAF so we read a laid-out height.
+    // Safety net: if `offsetHeight` was 0 at setup time (e.g. wrap was
+    // hidden), pick up the real height as soon as it's available.
     if (!initialized) {
       const h = getOrigH();
       currentY = -h;
@@ -421,8 +434,29 @@ export function initHome({
   if (!playSharedIntro) {
     if (homeWrap) animate(homeWrap, { y: 0, duration: 0 });
     animate(".main", { opacity: 1, pointerEvents: "auto", duration: 0 });
+
+    // Hide the strip while clones are inserted and the wrap is parked at -h.
+    // The synchronous transform inside `startInfiniteStrip` already prevents
+    // the "shifted" paint, but masking with opacity + blur also gives the
+    // transition a softer reveal that matches the rest of the page.
+    const wrap = document.querySelector(".home_content--wrap");
+    if (wrap) {
+      wrap.style.opacity = "0";
+      wrap.style.filter = HOME_ITEM_BLUR_START;
+    }
+
     startInfiniteStrip();
     animate(".home_list.is-clone", { opacity: 1, duration: 0 });
+
+    if (wrap) {
+      animate(wrap, {
+        opacity: [0, 1],
+        filter: [HOME_ITEM_BLUR_START, HOME_ITEM_BLUR_END],
+        duration: 600,
+        ease: cubicEase,
+      });
+    }
+
     initScrollReveal(cubicEase);
   } else {
     playSharedIntroIfPresent({ isHome: true }).then(() => {

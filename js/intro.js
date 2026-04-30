@@ -254,26 +254,14 @@ function resolveIntroConfig(page) {
 }
 
 let defaultFill = null;
-
-/**
- * Last values we explicitly animated the intro to. Used as the next "from"
- * so we never depend on `getComputedStyle` to figure out where to start —
- * that read is what makes workContent middle/last items snap. By the time
- * `updateIntroForPage` runs after the dismiss scroll, the live computed
- * transform/opacity can already be at (or essentially at) the new target
- * because of CSS / Webflow IX2 / a still-in-flight tween, so `[from, to]`
- * collapses into a no-op and looks like an instant jump to config.
- */
 let lastApplied = null;
 
-/** Initial pose used the very first time `updateIntroForPage` runs in a
- * session. Matches the intro's resting state on home/about so the first
- * transition has a real delta to animate against. */
 const INITIAL_INTRO_STATE = {
   opacity: 1,
   flowerY: "50%",
-  fill: null,
-  fillOpacity: 1,
+  fill: "#EE7F31",
+  fillOpacity: 0.5,
+  mobile: { flowerY: "25%" },
 };
 
 export function updateIntroForPage(page) {
@@ -286,9 +274,6 @@ export function updateIntroForPage(page) {
   const flowerGroup = introEl.querySelector(".flower_group");
   const paths = introEl.querySelectorAll(".flower_group .front");
 
-  // Cancel any in-flight intro tweens so the explicit `from` we set below
-  // isn't immediately overwritten by a leftover tween still ramping toward
-  // an old target.
   utils.remove(introEl);
   if (flowerGroup) utils.remove(flowerGroup);
   if (paths.length) utils.remove(paths);
@@ -303,11 +288,6 @@ export function updateIntroForPage(page) {
   };
   const toFill = config.fill || defaultFill;
 
-  // Force the start pose inline before kicking off the tween. Without this,
-  // anything that wrote to these properties between the previous tween and
-  // now (CSS rules toggled by class change, Webflow IX2, scroll-driven
-  // transforms, etc.) can leave the element already at `config.*`, making
-  // the resulting tween invisible.
   utils.set(introEl, { opacity: from.opacity });
   animate(introEl, {
     opacity: config.opacity,
