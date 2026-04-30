@@ -101,12 +101,11 @@ export function initWorkContent({
   const splits = collectWorkContentSplits(content);
 
   if (playSharedIntro) {
-    playSharedIntroIfPresent().then(() => {
-      updateIntroForPage(pageKey);
-      runWorkContentPageIntro(splits);
-    });
+    playSharedIntroIfPresent()
+      .then(() => updateIntroForPage(pageKey))
+      .then(() => runWorkContentPageIntro(splits));
   } else {
-    runWorkContentPageIntro(splits);
+    updateIntroForPage(pageKey).then(() => runWorkContentPageIntro(splits));
   }
 
   initMediaBlurReveal(content);

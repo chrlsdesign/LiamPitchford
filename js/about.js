@@ -61,12 +61,11 @@ export function initAbout({
   const splits = collectAboutSplits(content);
 
   if (playSharedIntro) {
-    playSharedIntroIfPresent().then(() => {
-      updateIntroForPage(pageKey);
-      runAboutPageIntro(splits);
-    });
+    playSharedIntroIfPresent()
+      .then(() => updateIntroForPage(pageKey))
+      .then(() => runAboutPageIntro(splits));
   } else {
-    runAboutPageIntro(splits);
+    updateIntroForPage(pageKey).then(() => runAboutPageIntro(splits));
   }
 
   const wrapper =

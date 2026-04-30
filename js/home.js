@@ -435,10 +435,8 @@ export function initHome({
     if (homeWrap) animate(homeWrap, { y: 0, duration: 0 });
     animate(".main", { opacity: 1, pointerEvents: "auto", duration: 0 });
 
-    // Hide the strip while clones are inserted and the wrap is parked at -h.
-    // The synchronous transform inside `startInfiniteStrip` already prevents
-    // the "shifted" paint, but masking with opacity + blur also gives the
-    // transition a softer reveal that matches the rest of the page.
+    // Get the strip's clones in place and the wrap parked at -h synchronously
+    // so the page is laid out correctly even while it's masked by opacity:0.
     const wrap = document.querySelector(".home_content--wrap");
     if (wrap) {
       wrap.style.opacity = "0";
@@ -448,22 +446,26 @@ export function initHome({
     startInfiniteStrip();
     animate(".home_list.is-clone", { opacity: 1, duration: 0 });
 
-    if (wrap) {
-      animate(wrap, {
-        opacity: [0, 1],
-        filter: [HOME_ITEM_BLUR_START, HOME_ITEM_BLUR_END],
-        duration: 600,
-        ease: cubicEase,
-      });
-    }
-
-    initScrollReveal(cubicEase);
-  } else {
-    playSharedIntroIfPresent({ isHome: true }).then(() => {
-      updateIntroForPage(pageKey);
-      startInfiniteStrip();
+    // Flower animates immediately; content reveal waits for the intro lead
+    // so the flower visibly moves before the strip materializes.
+    updateIntroForPage(pageKey).then(() => {
+      if (wrap) {
+        animate(wrap, {
+          opacity: [0, 1],
+          filter: [HOME_ITEM_BLUR_START, HOME_ITEM_BLUR_END],
+          duration: 600,
+          ease: cubicEase,
+        });
+      }
       initScrollReveal(cubicEase);
     });
+  } else {
+    playSharedIntroIfPresent({ isHome: true })
+      .then(() => updateIntroForPage(pageKey))
+      .then(() => {
+        startInfiniteStrip();
+        initScrollReveal(cubicEase);
+      });
   }
 
   document.querySelectorAll(".home_cms--link").forEach(attachLinkCursor);

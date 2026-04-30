@@ -49,12 +49,11 @@ export function initWork({ playSharedIntro = false, content = document, pageKey 
   setWorkWordsHidden(blocks);
 
   if (playSharedIntro) {
-    playSharedIntroIfPresent().then(() => {
-      updateIntroForPage(pageKey);
-      runWorkPageIntro(blocks);
-    });
+    playSharedIntroIfPresent()
+      .then(() => updateIntroForPage(pageKey))
+      .then(() => runWorkPageIntro(blocks));
   } else {
-    runWorkPageIntro(blocks);
+    updateIntroForPage(pageKey).then(() => runWorkPageIntro(blocks));
   }
 
   const controller = new AbortController();

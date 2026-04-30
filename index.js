@@ -3,7 +3,6 @@ import { initHome, destroyHome } from "./js/home.js";
 import { initAbout } from "./js/about.js";
 import { initWork } from "./js/work.js";
 import { initWorkContent, destroyWorkContent } from "./js/work-content.js";
-import { updateIntroForPage } from "./js/intro.js";
 import { animate } from "animejs";
 
 /** 1 = first paint after full page load / refresh; 2+ = Taxi swaps (same JS session). */
@@ -137,7 +136,8 @@ class DefaultRenderer extends Renderer {
     else if (isWorkList) pageKey = "work";
 
     if (!playSharedIntro) {
-      updateIntroForPage(pageKey);
+      // Each page init now owns the `updateIntroForPage` call so it can await
+      // the lead delay before running its content reveal (flower moves first).
       const main = document.querySelector(".main");
       if (main) {
         main.style.opacity = "1";

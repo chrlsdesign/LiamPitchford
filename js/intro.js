@@ -264,12 +264,21 @@ const INITIAL_INTRO_STATE = {
   mobile: { flowerY: "25%" },
 };
 
+/** How long page inits should hold off their content reveal so the flower
+ * visibly does its thing first. Tune to taste. */
+export const INTRO_LEAD_MS = 500;
+
+/**
+ * Animate the intro to the page's target state and return a Promise that
+ * resolves after `INTRO_LEAD_MS`. Page inits await this before kicking off
+ * their content reveal so the flower moves first, then content fades in.
+ */
 export function updateIntroForPage(page) {
   const introEl = document.querySelector(".introbg");
-  if (!introEl) return;
+  if (!introEl) return Promise.resolve();
 
   const config = resolveIntroConfig(page);
-  if (!config) return;
+  if (!config) return Promise.resolve();
 
   const flowerGroup = introEl.querySelector(".flower_group");
   const paths = introEl.querySelectorAll(".flower_group .front");
@@ -320,4 +329,6 @@ export function updateIntroForPage(page) {
     fill: toFill,
     fillOpacity: config.fillOpacity,
   };
+
+  return new Promise((resolve) => setTimeout(resolve, INTRO_LEAD_MS));
 }
