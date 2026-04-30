@@ -277,7 +277,7 @@ const INITIAL_INTRO_STATE = {
 };
 
 export function updateIntroForPage(page) {
-  const introEl = document.querySelector(".intro_bg");
+  const introEl = document.querySelector(".introbg");
   if (!introEl) return;
 
   const config = resolveIntroConfig(page);
