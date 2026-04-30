@@ -210,7 +210,7 @@ export function playSharedIntroIfPresent(opts) {
 
 const INTRO_PAGE_CONFIG = {
   home: {
-    opacity: 0.2,
+    opacity: 0,
     flowerY: "50%",
     fill: "#EE7F31",
     fillOpacity: 0.5,
@@ -231,7 +231,7 @@ const INTRO_PAGE_CONFIG = {
     mobile: { flowerY: "-25%" },
   },
   workContent: {
-    opacity: 0.2,
+    opacity: 0,
     flowerY: "-50%",
     fill: "#EE7F31",
     fillOpacity: 0.5,
@@ -311,7 +311,7 @@ export function updateIntroForPage(page) {
   utils.set(introEl, { opacity: from.opacity });
   animate(introEl, {
     opacity: config.opacity,
-    duration: 400,
+    duration: 1000,
     ease: cubicEase,
   });
 
