@@ -83,12 +83,13 @@ function initMediaBlurReveal(container) {
 
 const MEDIA_SKIN_CSS = `
   .media-minimal-skin--video .media-controls{
-    background: var(--brand) !important;
-    color: var(--media-controls-background-color) !important;
+    background: transparent !important;
+    color: var(--brand) !important;
   }
 
   .media-minimal-skin--video .media-popover--volume{
-    background: var(--brand) !important;
+    background: color-mix(in srgb, var(--brand) 20%, transparent 100%) !important;
+    color: var(--brand) !important;
   }
 `;
 
