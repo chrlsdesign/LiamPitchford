@@ -87,6 +87,33 @@ function initMediaBlurReveal(container) {
   });
 }
 
+const MEDIA_SKIN_CSS = `
+  .media-minimal-skin--video .media-controls{
+    background: var(--brand) !important;
+    color: var(--media-controls-background-color) !important;
+  }
+
+  .media-minimal-skin--video .media-popover--volume{
+    background: var(--brand) !important;
+  }
+`;
+
+function injectMediaSkinStyles(container) {
+  const root = container && container.querySelectorAll ? container : document;
+  root.querySelectorAll("*").forEach((el) => {
+    if (
+      el.shadowRoot &&
+      el.shadowRoot.querySelector(".media-minimal-skin--video") &&
+      !el.shadowRoot.querySelector("style[data-media-skin-injected]")
+    ) {
+      const style = document.createElement("style");
+      style.setAttribute("data-media-skin-injected", "");
+      style.textContent = MEDIA_SKIN_CSS;
+      el.shadowRoot.appendChild(style);
+    }
+  });
+}
+
 export function destroyWorkContent() {
   scrollObservers.forEach((o) => o.revert());
   scrollObservers = [];
@@ -132,4 +159,6 @@ export function initWorkContent({
     video.playsInline = true;
     video.loop = true;
   });
+
+  setTimeout(() => injectMediaSkinStyles(content), 1000);
 }
