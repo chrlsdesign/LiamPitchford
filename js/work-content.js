@@ -1,10 +1,4 @@
-import {
-  animate,
-  cubicBezier,
-  onScroll,
-  splitText,
-  stagger,
-} from "animejs";
+import { animate, cubicBezier, onScroll, splitText, stagger } from "animejs";
 import { playSharedIntroIfPresent, updateIntroForPage } from "./intro.js";
 
 const WORK_CONTENT_INTRO_CLASSES = [".content_title", ".content_desc p"];
@@ -155,9 +149,17 @@ export function initWorkContent({
   });
 
   wcRoot.querySelectorAll("video").forEach((video) => {
-    video.muted = true;
     video.playsInline = true;
     video.loop = true;
+    video.style.cursor = "pointer";
+
+    video.addEventListener("click", () => {
+      if (video.paused) {
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
+    });
   });
 
   setTimeout(() => injectMediaSkinStyles(content), 1000);
