@@ -8,13 +8,31 @@ const ABOUT_INTRO_CLASSES = [
   ".about_social",
 ];
 
-function preBreakAtBr(el) {
-  if (!el.querySelector("br")) return;
-  const html = el.innerHTML;
-  const parts = html.split(/<br\s*\/?>/i);
-  el.innerHTML = parts
-    .map((p) => `<span style="display:block;">${p}</span>`)
-    .join("");
+function getBrWordIndices(el) {
+  const indices = [];
+  let wordCount = 0;
+  const walk = (node) => {
+    if (node.nodeType === 1 && node.tagName === "BR") {
+      indices.push(wordCount - 1);
+      return;
+    }
+    if (node.nodeType === 3) {
+      const m = node.textContent.match(/\S+/g);
+      if (m) wordCount += m.length;
+      return;
+    }
+    node.childNodes.forEach(walk);
+  };
+  walk(el);
+  return indices;
+}
+
+function insertBrsAfterWords(words, indices) {
+  indices.forEach((idx) => {
+    const w = words[idx];
+    if (!w || !w.parentNode) return;
+    w.parentNode.insertBefore(document.createElement("br"), w.nextSibling);
+  });
 }
 
 function collectAboutSplits(container) {
@@ -24,12 +42,12 @@ function collectAboutSplits(container) {
   ABOUT_INTRO_CLASSES.forEach((cls) => {
     root.querySelectorAll(cls).forEach((el) => {
       el.style.visibility = "hidden";
-      preBreakAtBr(el);
+      const brIndices = getBrWordIndices(el);
       const split = splitText(el, {
         lines: { wrap: "clip" },
         words: true,
       });
-      splits.push({ split, cls, el });
+      splits.push({ split, cls, el, brIndices });
     });
   });
 
@@ -47,12 +65,13 @@ function runAboutPageIntro(splits) {
     }
   });
 
-  splits.forEach(({ split, cls, el }) => {
+  splits.forEach(({ split, cls, el, brIndices }) => {
     const offset =
       cls === ".about_text" || cls === ".about_social" ? aboutPDuration : 0;
 
     split.addEffect(({ words }) => {
       el.style.visibility = "";
+      insertBrsAfterWords(words, brIndices);
       return animate(words, {
         y: [{ to: ["100%", "0%"] }],
         duration: spduration,
