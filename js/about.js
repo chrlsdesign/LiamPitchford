@@ -8,6 +8,15 @@ const ABOUT_INTRO_CLASSES = [
   ".about_social",
 ];
 
+function preBreakAtBr(el) {
+  if (!el.querySelector("br")) return;
+  const html = el.innerHTML;
+  const parts = html.split(/<br\s*\/?>/i);
+  el.innerHTML = parts
+    .map((p) => `<span style="display:block;">${p}</span>`)
+    .join("");
+}
+
 function collectAboutSplits(container) {
   const root = container.querySelector(".about_p") ? container : document;
   const splits = [];
@@ -15,6 +24,7 @@ function collectAboutSplits(container) {
   ABOUT_INTRO_CLASSES.forEach((cls) => {
     root.querySelectorAll(cls).forEach((el) => {
       el.style.visibility = "hidden";
+      preBreakAtBr(el);
       const split = splitText(el, {
         lines: { wrap: "clip" },
         words: true,
