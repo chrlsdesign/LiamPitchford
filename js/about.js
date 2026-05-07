@@ -27,11 +27,16 @@ function getBrWordIndices(el) {
   return indices;
 }
 
-function insertBrsAfterWords(words, indices) {
+function insertBrsAfterWords(el, words, indices) {
   indices.forEach((idx) => {
     const w = words[idx];
-    if (!w || !w.parentNode) return;
-    w.parentNode.insertBefore(document.createElement("br"), w.nextSibling);
+    if (!w) return;
+    let top = w;
+    while (top.parentNode && top.parentNode !== el) {
+      top = top.parentNode;
+    }
+    if (!top.parentNode) return;
+    top.parentNode.insertBefore(document.createElement("br"), top.nextSibling);
   });
 }
 
@@ -71,7 +76,7 @@ function runAboutPageIntro(splits) {
 
     split.addEffect(({ words }) => {
       el.style.visibility = "";
-      insertBrsAfterWords(words, brIndices);
+      insertBrsAfterWords(el, words, brIndices);
       return animate(words, {
         y: [{ to: ["100%", "0%"] }],
         duration: spduration,
