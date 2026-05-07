@@ -11,14 +11,19 @@ const ABOUT_INTRO_CLASSES = [
 function getBrWordIndices(el) {
   const indices = [];
   let wordCount = 0;
+  let consecutiveBr = 0;
   const walk = (node) => {
     if (node.nodeType === 1 && node.tagName === "BR") {
-      indices.push(wordCount - 1);
+      if (consecutiveBr >= 1) indices.push(wordCount - 1);
+      consecutiveBr++;
       return;
     }
     if (node.nodeType === 3) {
       const m = node.textContent.match(/\S+/g);
-      if (m) wordCount += m.length;
+      if (m) {
+        wordCount += m.length;
+        consecutiveBr = 0;
+      }
       return;
     }
     node.childNodes.forEach(walk);
