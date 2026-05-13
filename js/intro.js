@@ -233,8 +233,10 @@ const INTRO_PAGE_CONFIG = {
   workContent: {
     opacity: 0,
     flowerY: "-50%",
-    fill: "#EE7F31",
-    fillOpacity: 0.5,
+    // Keep the same petal treatment as `work`; hide via `.introbg` opacity only
+    // so we don't tween fill back to brand orange on every project page enter.
+    fill: "#ffffff",
+    fillOpacity: 1,
     mobile: { flowerY: "-25%" },
   },
 };
@@ -253,16 +255,26 @@ function resolveIntroConfig(page) {
   return base;
 }
 
-let defaultFill = null;
 let lastApplied = null;
 
-const INITIAL_INTRO_STATE = {
-  opacity: 1,
-  flowerY: "50%",
-  fill: "#EE7F31",
-  fillOpacity: 0.5,
-  mobile: { flowerY: "25%" },
-};
+/** When `lastApplied` is empty (first run / edge cases), derive `from` from the live DOM
+ * instead of a hardcoded palette so Taxi swaps don't snap through a stale "initial" fill. */
+function fallbackIntroFromDom(introEl, paths) {
+  const flowerY = MOBILE_INTRO_MQ?.matches ? "25%" : "50%";
+  const opacity = introEl ? getComputedStyle(introEl).opacity : "1";
+  if (!paths.length) {
+    return { opacity, flowerY, fill: "#EE7F31", fillOpacity: 0.5 };
+  }
+  const cs = getComputedStyle(paths[0]);
+  return {
+    opacity,
+    flowerY,
+    fill: cs.fill,
+    fillOpacity: Number.isFinite(parseFloat(cs.opacity))
+      ? parseFloat(cs.opacity)
+      : 1,
+  };
+}
 
 /** How long page inits should hold off their content reveal so the flower
  * visibly does its thing first. Tune to taste. */
@@ -287,15 +299,8 @@ export function updateIntroForPage(page) {
   if (flowerGroup) utils.remove(flowerGroup);
   if (paths.length) utils.remove(paths);
 
-  if (defaultFill === null && paths.length) {
-    defaultFill = getComputedStyle(paths[0]).fill;
-  }
-
-  const from = lastApplied || {
-    ...INITIAL_INTRO_STATE,
-    fill: defaultFill,
-  };
-  const toFill = config.fill || defaultFill;
+  const from = lastApplied || fallbackIntroFromDom(introEl, paths);
+  const toFill = config.fill || from.fill;
 
   utils.set(introEl, { opacity: from.opacity });
   animate(introEl, {
@@ -315,12 +320,16 @@ export function updateIntroForPage(page) {
 
   if (paths.length) {
     utils.set(paths, { fill: from.fill, opacity: from.fillOpacity });
-    animate(paths, {
-      fill: toFill,
-      opacity: config.fillOpacity,
-      duration: 400,
-      ease: cubicEase,
-    });
+    const fillUnchanged =
+      from.fill === toFill && from.fillOpacity === config.fillOpacity;
+    if (!fillUnchanged) {
+      animate(paths, {
+        fill: toFill,
+        opacity: config.fillOpacity,
+        duration: 400,
+        ease: cubicEase,
+      });
+    }
   }
 
   lastApplied = {
