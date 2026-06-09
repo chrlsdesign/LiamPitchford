@@ -144,13 +144,16 @@ function attachLinkCursor(link) {
   const crs = link.querySelector(".home_flw--crs");
   if (!crs) return;
 
+  let bounds = link.getBoundingClientRect();
+  const refreshBounds = () => (bounds = link.getBoundingClientRect());
+
   const cursorAnim = createAnimatable(crs, {
     x: 400,
     y: 400,
   });
 
   link.addEventListener("mousemove", (e) => {
-    const { width, height, left, top } = link.getBoundingClientRect();
+    const { width, height, left, top } = bounds;
     const hw = width / 2;
     const hh = height / 2;
     const x = utils.clamp(e.clientX - left - hw, -hw, hw);
@@ -165,6 +168,9 @@ function attachLinkCursor(link) {
   link.addEventListener("mouseleave", () => {
     animate(crs, { opacity: 0, duration: 800, ease: "inOut(1.68)" });
   });
+
+  window.addEventListener("resize", refreshBounds);
+  window.addEventListener("scroll", refreshBounds);
 }
 
 /**
