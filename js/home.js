@@ -144,16 +144,13 @@ function attachLinkCursor(link) {
   const crs = link.querySelector(".home_flw--crs");
   if (!crs) return;
 
-  let bounds = link.getBoundingClientRect();
-  const refreshBounds = () => (bounds = link.getBoundingClientRect());
-
   const cursorAnim = createAnimatable(crs, {
     x: 400,
     y: 400,
   });
 
-  window.addEventListener("mousemove", (e) => {
-    const { width, height, left, top } = bounds;
+  link.addEventListener("mousemove", (e) => {
+    const { width, height, left, top } = link.getBoundingClientRect();
     const hw = width / 2;
     const hh = height / 2;
     const x = utils.clamp(e.clientX - left - hw, -hw, hw);
