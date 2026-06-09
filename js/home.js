@@ -2,7 +2,7 @@ import {
   animate,
   cubicBezier,
   createLayout,
-  onScroll,
+  createAnimatable,
   utils,
   createTimeline,
 } from "animejs";
@@ -144,6 +144,11 @@ function attachLinkCursor(link) {
   const crs = link.querySelector(".home_flw--crs");
   if (!crs) return;
 
+  const cursorAnim = createAnimatable(crs, {
+    x: 400,
+    y: 400,
+  });
+
   link.addEventListener("mousemove", (e) => {
     const linkRect = link.getBoundingClientRect();
     const crsRect = crs.getBoundingClientRect();
@@ -162,7 +167,7 @@ function attachLinkCursor(link) {
       Math.max(0, linkRect.height - h),
     );
 
-    crs.style.transform = `translate(${x}px, ${y}px)`;
+    cursorAnim.x(x).y(y);
   });
 
   link.addEventListener("mouseenter", () => {
