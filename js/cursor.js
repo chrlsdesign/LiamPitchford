@@ -1,49 +1,73 @@
-// export function initCursor() {
-//   const TAIL_LENGTH = 50;
+import { createPageScope } from "./scope.js";
 
-//   const cursor = document.getElementById("cursor");
+let cursorScope = null;
 
-//   let mouseX = 0;
-//   let mouseY = 0;
+export function destroyCursor() {
+  cursorScope?.revert();
+  cursorScope = null;
+}
 
-//   let cursorCircles;
-//   let cursorHistory = Array(TAIL_LENGTH).fill({ x: 0, y: 0 });
+export function initCursor() {
+  cursorScope?.revert();
+  cursorScope = createPageScope();
 
-//   function onMouseMove(event) {
-//     mouseX = event.clientX;
-//     mouseY = event.clientY;
-//   }
+  cursorScope.add((scope) => {
+    if (!scope.matches.desktop) return;
 
-//   function initCursor() {
-//     for (let i = 0; i < TAIL_LENGTH; i++) {
-//       let div = document.createElement("div");
-//       div.classList.add("cursor-circle");
-//       cursor.append(div);
-//     }
-//     cursorCircles = Array.from(document.querySelectorAll(".cursor-circle"));
-//   }
+    const TAIL_LENGTH = 50;
+    const cursor = document.getElementById("cursor");
+    if (!cursor) return;
 
-//   function updateCursor() {
-//     cursorHistory.shift();
-//     cursorHistory.push({ x: mouseX, y: mouseY });
+    let mouseX = 0;
+    let mouseY = 0;
+    let running = true;
+    let rafId = 0;
 
-//     for (let i = 0; i < TAIL_LENGTH; i++) {
-//       let current = cursorHistory[i];
-//       let next = cursorHistory[i + 1] || cursorHistory[TAIL_LENGTH - 1];
+    const cursorHistory = Array(TAIL_LENGTH).fill({ x: 0, y: 0 });
 
-//       let xDiff = next.x - current.x;
-//       let yDiff = next.y - current.y;
+    const onMouseMove = (event) => {
+      mouseX = event.clientX;
+      mouseY = event.clientY;
+    };
 
-//       current.x += xDiff * 0.35;
-//       current.y += yDiff * 0.35;
-//       cursorCircles[i].style.transform =
-//         `translate(${current.x}px, ${current.y}px) scale(${i / TAIL_LENGTH})`;
-//     }
-//     requestAnimationFrame(updateCursor);
-//   }
+    for (let i = 0; i < TAIL_LENGTH; i++) {
+      const div = document.createElement("div");
+      div.classList.add("cursor-circle");
+      cursor.append(div);
+    }
 
-//   document.addEventListener("mousemove", onMouseMove, false);
+    const cursorCircles = Array.from(cursor.querySelectorAll(".cursor-circle"));
 
-//   initCursor();
-//   updateCursor();
-// }
+    const updateCursor = () => {
+      if (!running) return;
+
+      cursorHistory.shift();
+      cursorHistory.push({ x: mouseX, y: mouseY });
+
+      for (let i = 0; i < TAIL_LENGTH; i++) {
+        const current = cursorHistory[i];
+        const next = cursorHistory[i + 1] || cursorHistory[TAIL_LENGTH - 1];
+
+        const xDiff = next.x - current.x;
+        const yDiff = next.y - current.y;
+
+        current.x += xDiff * 0.35;
+        current.y += yDiff * 0.35;
+        cursorCircles[i].style.transform =
+          `translate(${current.x}px, ${current.y}px) scale(${i / TAIL_LENGTH})`;
+      }
+
+      rafId = requestAnimationFrame(updateCursor);
+    };
+
+    document.addEventListener("mousemove", onMouseMove, false);
+    updateCursor();
+
+    return () => {
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      document.removeEventListener("mousemove", onMouseMove, false);
+      cursorCircles.forEach((circle) => circle.remove());
+    };
+  });
+}
