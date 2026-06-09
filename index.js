@@ -1,8 +1,9 @@
 import { Core, Transition, Renderer } from "@unseenco/taxi";
 import { initHome, destroyHome } from "./js/home.js";
 import { initAbout } from "./js/about.js";
-import { initWork } from "./js/work.js";
+import { initWork, destroyWork } from "./js/work.js";
 import { initWorkContent, destroyWorkContent } from "./js/work-content.js";
+import { initCursor } from "./js/cursor.js";
 import { animate } from "animejs";
 
 /** 1 = first paint after full page load / refresh; 2+ = Taxi swaps (same JS session). */
@@ -53,6 +54,7 @@ function copyEmail(sourceEl) {
 
 updateTime();
 setInterval(updateTime, 1000);
+initCursor();
 
 document.addEventListener("click", (event) => {
   const emailEl = event.target.closest("[data-email]");
@@ -160,6 +162,7 @@ class DefaultRenderer extends Renderer {
 
   onLeaveCompleted() {
     destroyWorkContent();
+    destroyWork();
     const { segs } = routeSegments(window.location.pathname);
     // Tear down the home infinite strip when the *current* page is not home
     // (leaving home, or any non-home route).

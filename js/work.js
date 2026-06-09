@@ -1,5 +1,8 @@
 import { animate, createTimeline, splitText, stagger, utils } from "animejs";
 import { playSharedIntroIfPresent, updateIntroForPage } from "./intro.js";
+import { createPageScope } from "./scope.js";
+
+let workScope = null;
 
 const WORK_INTRO_CLASSES = [".work_title"];
 
@@ -44,11 +47,111 @@ function runWorkPageIntro(blocks) {
   wr_tl.init();
 }
 
+function resetWorkHoverState(workItems) {
+  workItems.forEach((item) => {
+    item.querySelector(".work_title")?.classList.remove("is-active");
+    const link = item.querySelector(".work_thumb--holder");
+    const thumbs = item.querySelectorAll(".work_thumb");
+    if (link) link.style.display = "none";
+    thumbs.forEach((thumb) => (thumb.style.opacity = "0"));
+  });
+}
+
+function showWorkThumbsStatic(workItems) {
+  workItems.forEach((item) => {
+    const link = item.querySelector(".work_thumb--holder");
+    if (link) link.style.display = "flex";
+    item.querySelectorAll(".work_thumb").forEach((thumb) => {
+      thumb.style.opacity = "1";
+      thumb.style.filter = "blur(0px)";
+    });
+  });
+}
+
+function setupWorkHover(workItems) {
+  let activeItem = null;
+
+  const cleanups = workItems.map((item) => {
+    const onOver = () => {
+      if (item.classList.contains("off")) return;
+      if (item === activeItem) return;
+
+      if (activeItem) {
+        activeItem.querySelector(".work_title")?.classList.remove("is-active");
+        animate(activeItem.querySelector(".work_title"), {
+          opacity: 0.4,
+          duration: 300,
+          ease: "outQuad",
+        });
+        animate(activeItem.querySelectorAll(".work_thumb"), {
+          opacity: 0,
+          filter: ["blur(0px)", "blur(20px)"],
+          duration: 300,
+          ease: "outQuad",
+        });
+        animate(
+          activeItem.querySelector(".work_thumb--holder"),
+          {
+            display: "none",
+            duration: 0,
+          },
+          "<",
+        );
+      } else {
+        workItems.forEach((wi) => {
+          if (wi === item || wi.classList.contains("off")) return;
+          animate(wi.querySelector(".work_title"), {
+            opacity: 0.4,
+            duration: 300,
+            ease: "outQuad",
+          });
+        });
+      }
+
+      item.querySelector(".work_title")?.classList.add("is-active");
+      animate(item.querySelector(".work_title"), {
+        opacity: 1,
+        duration: 300,
+        ease: "outQuad",
+      });
+      animate(item.querySelector(".work_thumb--holder"), {
+        display: "flex",
+        duration: 0,
+      });
+      animate(
+        item.querySelectorAll(".work_thumb"),
+        {
+          opacity: 1,
+          filter: ["blur(20px)", "blur(0px)"],
+          duration: 300,
+          ease: "outQuad",
+        },
+        "<",
+      );
+
+      activeItem = item;
+    };
+
+    item.addEventListener("mouseover", onOver);
+    return () => item.removeEventListener("mouseover", onOver);
+  });
+
+  return () => cleanups.forEach((cleanup) => cleanup());
+}
+
+export function destroyWork() {
+  workScope?.revert();
+  workScope = null;
+}
+
 export function initWork({
   playSharedIntro = false,
   content = document,
   pageKey = "work",
 } = {}) {
+  workScope?.revert();
+  workScope = createPageScope(content);
+
   const blocks = collectWorkWordSplits(content);
   setWorkWordsHidden(blocks);
 
@@ -60,87 +163,15 @@ export function initWork({
     updateIntroForPage(pageKey).then(() => runWorkPageIntro(blocks));
   }
 
-  const controller = new AbortController();
-  const { signal } = controller;
   const workItems = content.querySelectorAll(".work_item");
-  let activeItem = null;
+  resetWorkHoverState(workItems);
 
-  //Hover Project
-  workItems.forEach((item) => {
-    item.querySelector(".work_title")?.classList.remove("is-active");
-    const link = item.querySelector(".work_thumb--holder");
-    const thumbs = item.querySelectorAll(".work_thumb");
-    if (link) link.style.display = "none";
-    thumbs.forEach((thumb) => (thumb.style.opacity = "0"));
-  });
+  workScope.add((scope) => {
+    if (scope.matches.desktop) {
+      resetWorkHoverState(workItems);
+      return setupWorkHover(workItems);
+    }
 
-  workItems.forEach((item) => {
-    item.addEventListener(
-      "mouseover",
-      () => {
-        if (item.classList.contains("off")) return;
-        if (item === activeItem) return;
-
-        // deactivate previous
-        if (activeItem) {
-          activeItem
-            .querySelector(".work_title")
-            ?.classList.remove("is-active");
-          animate(activeItem.querySelector(".work_title"), {
-            opacity: 0.4,
-            duration: 300,
-            ease: "outQuad",
-          });
-          animate(activeItem.querySelectorAll(".work_thumb"), {
-            opacity: 0,
-            filter: ["blur(0px)", "blur(20px)"],
-            duration: 300,
-            ease: "outQuad",
-          });
-          animate(
-            activeItem.querySelector(".work_thumb--holder"),
-            {
-              display: "none",
-              duration: 0,
-            },
-            "<",
-          );
-        } else {
-          workItems.forEach((wi) => {
-            if (wi === item || wi.classList.contains("off")) return;
-            animate(wi.querySelector(".work_title"), {
-              opacity: 0.4,
-              duration: 300,
-              ease: "outQuad",
-            });
-          });
-        }
-
-        // activate current
-        item.querySelector(".work_title")?.classList.add("is-active");
-        animate(item.querySelector(".work_title"), {
-          opacity: 1,
-          duration: 300,
-          ease: "outQuad",
-        });
-        animate(item.querySelector(".work_thumb--holder"), {
-          display: "flex",
-          duration: 0,
-        });
-        animate(
-          item.querySelectorAll(".work_thumb"),
-          {
-            opacity: 1,
-            filter: ["blur(20px)", "blur(0px)"],
-            duration: 300,
-            ease: "outQuad",
-          },
-          "<",
-        );
-
-        activeItem = item;
-      },
-      { signal },
-    );
+    showWorkThumbsStatic(workItems);
   });
 }

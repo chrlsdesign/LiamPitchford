@@ -6,10 +6,12 @@ import {
   utils,
   waapi,
 } from "animejs";
+import { createPageScope } from "./scope.js";
 
 const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
 
 let introInterAc = null;
+let introScope = null;
 /** Blocks native scroll during the whole intro (wheel/touchmove preventDefault). */
 let introScrollLockAc = null;
 
@@ -90,36 +92,43 @@ export function playHomeIntro({ isHome = false } = {}) {
       const ac = new AbortController();
       introInterAc = ac;
 
-      const inter = document.querySelector(".inter");
-      const svg = document.querySelector(".intro_flower");
-      if (inter) {
+      introScope?.revert();
+      introScope = createPageScope();
+      introScope.add((scope) => {
+        if (!scope.matches.desktop) return;
+
+        const inter = document.querySelector(".inter");
+        const svg = document.querySelector(".intro_flower");
+        if (!inter || !svg) return;
+
         const animatable = createAnimatable(inter, {
           x: { duration: 600, ease: "out(3)" },
           y: { duration: 600, ease: "out(3)" },
         });
-        document.addEventListener(
-          "mousemove",
-          (e) => {
-            const rect = svg.getBoundingClientRect();
-            const vb = svg.viewBox.baseVal;
 
-            const scaleX = vb.width / rect.width;
-            const scaleY = vb.height / rect.height;
+        const onMove = (e) => {
+          const rect = svg.getBoundingClientRect();
+          const vb = svg.viewBox.baseVal;
 
-            const x = (e.clientX - rect.left) * scaleX - inter.offsetWidth / 2;
-            const y = (e.clientY - rect.top) * scaleY - inter.offsetHeight / 2;
+          const scaleX = vb.width / rect.width;
+          const scaleY = vb.height / rect.height;
 
-            animate(inter, { opacity: 1, duration: 250 });
-            animatable.x(x);
-            animatable.y(y);
-          },
-          { signal: ac.signal },
-        );
-      }
+          const x = (e.clientX - rect.left) * scaleX - inter.offsetWidth / 2;
+          const y = (e.clientY - rect.top) * scaleY - inter.offsetHeight / 2;
+
+          animate(inter, { opacity: 1, duration: 250 });
+          animatable.x(x);
+          animatable.y(y);
+        };
+
+        document.addEventListener("mousemove", onMove, { signal: ac.signal });
+      });
 
       const dismiss = () => {
         ac.abort();
         introInterAc = null;
+        introScope?.revert();
+        introScope = null;
 
         let homeListAnim = null;
 
@@ -195,6 +204,8 @@ export function detachIntroInterListeners() {
     introInterAc.abort();
     introInterAc = null;
   }
+  introScope?.revert();
+  introScope = null;
   unlockIntroBodyScroll();
 }
 

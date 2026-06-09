@@ -1,4 +1,4 @@
-import { animate, createAnimatable, splitText, stagger } from "animejs";
+import { animate, splitText, stagger } from "animejs";
 import { playSharedIntroIfPresent, updateIntroForPage } from "./intro.js";
 
 const ABOUT_INTRO_CLASSES = [
@@ -106,38 +106,4 @@ export function initAbout({
   } else {
     updateIntroForPage(pageKey).then(() => runAboutPageIntro(splits));
   }
-
-  const wrapper =
-    content.querySelector(".section.about") ||
-    document.querySelector(".section.about");
-  const blob =
-    content.querySelector(".i-blob") || document.querySelector(".i-blob");
-  if (!wrapper || !blob) return;
-
-  const animatable = createAnimatable(blob, {
-    x: { duration: 800, ease: "out(3)" },
-    y: { duration: 800, ease: "out(3)" },
-  });
-
-  let angle = 0;
-  let lastAngle = 0;
-  const PI = Math.PI;
-  const strength = 1;
-
-  let bounds = wrapper.getBoundingClientRect();
-  window.addEventListener(
-    "resize",
-    () => (bounds = wrapper.getBoundingClientRect()),
-  );
-
-  wrapper.addEventListener("mousemove", (e) => {
-    const { width, height, left, top } = bounds;
-
-    // movement — relative to wrapper
-    const x = (e.clientX - left - width / 2) * strength;
-    const y = (e.clientY - top - height / 2) * strength;
-
-    animatable.x(x);
-    animatable.y(y);
-  });
 }

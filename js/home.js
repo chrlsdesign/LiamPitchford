@@ -11,6 +11,7 @@ import {
   playSharedIntroIfPresent,
   updateIntroForPage,
 } from "./intro.js";
+import { createPageScope } from "./scope.js";
 
 let scrollObservers = [];
 const played = new Set();
@@ -19,6 +20,7 @@ const played = new Set();
 const itemGroups = new WeakMap();
 let destroyGalleryZoom = null;
 let infiniteStrip = null;
+let homeScope = null;
 
 const HOME_ITEM_BLUR_START = "blur(20px)";
 const HOME_ITEM_BLUR_END = "blur(0px)";
@@ -142,35 +144,48 @@ function initScrollReveal(cubicEase) {
 
 function attachLinkCursor(link) {
   const crs = link.querySelector(".home_flw--crs");
-  if (!crs) return;
-
-  let bounds = link.getBoundingClientRect();
-  const refreshBounds = () => (bounds = link.getBoundingClientRect());
+  if (!crs) return () => {};
 
   const cursorAnim = createAnimatable(crs, {
-    x: 50,
-    y: 50,
+    x: 200,
+    y: 200,
+    ease: "out(3)",
   });
 
-  link.addEventListener("mousemove", (e) => {
+  const onMove = (e) => {
     const { width, height, left, top } = link.getBoundingClientRect();
     const hw = width / 2;
     const hh = height / 2;
     const x = utils.clamp(e.clientX - left - hw, -hw, hw);
     const y = utils.clamp(e.clientY - top - hh, -hh, hh);
     cursorAnim.x(x).y(y);
-  });
+  };
 
-  link.addEventListener("mouseenter", () => {
+  const onEnter = () => {
     animate(crs, { opacity: 1, duration: 800, ease: "inOut(1.68)" });
-  });
+  };
 
-  link.addEventListener("mouseleave", () => {
+  const onLeave = () => {
     animate(crs, { opacity: 0, duration: 800, ease: "inOut(1.68)" });
-  });
+  };
 
-  window.addEventListener("resize", refreshBounds);
-  window.addEventListener("scroll", refreshBounds);
+  link.addEventListener("mousemove", onMove);
+  link.addEventListener("mouseenter", onEnter);
+  link.addEventListener("mouseleave", onLeave);
+
+  return () => {
+    link.removeEventListener("mousemove", onMove);
+    link.removeEventListener("mouseenter", onEnter);
+    link.removeEventListener("mouseleave", onLeave);
+  };
+}
+
+function setupDesktopLinkCursors() {
+  const cleanups = [];
+  document.querySelectorAll(".home_cms--link").forEach((link) => {
+    cleanups.push(attachLinkCursor(link));
+  });
+  return () => cleanups.forEach((cleanup) => cleanup());
 }
 
 /**
@@ -199,10 +214,6 @@ function insertStripClones() {
   const after = makeClone();
   wrap.insertBefore(before, origList);
   wrap.appendChild(after);
-
-  [before, after].forEach((list) => {
-    list.querySelectorAll(".home_cms--link").forEach(attachLinkCursor);
-  });
 
   // Pair each item with its clones by index so the reveal observer can treat
   // all three copies as one — revealing any copy marks the others played.
@@ -412,6 +423,9 @@ export function initHome({
   content = document,
   pageKey = "home",
 } = {}) {
+  homeScope?.revert();
+  homeScope = createPageScope(content);
+
   const hasSharedIntro = !!document.querySelector(".intro");
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
   const homeWrap = document.querySelector(".home_wrap");
@@ -467,7 +481,10 @@ export function initHome({
       });
   }
 
-  document.querySelectorAll(".home_cms--link").forEach(attachLinkCursor);
+  homeScope.add((scope) => {
+    if (!scope.matches.desktop) return;
+    return setupDesktopLinkCursors();
+  });
 
   initDialog();
 }
@@ -572,6 +589,8 @@ function resetScrollReveal() {
 }
 
 export function destroyHome() {
+  homeScope?.revert();
+  homeScope = null;
   detachIntroInterListeners();
   if (destroyGalleryZoom) {
     destroyGalleryZoom();
