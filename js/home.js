@@ -168,8 +168,6 @@ function attachLinkCursor(link) {
   link.addEventListener("mouseleave", () => {
     animate(crs, { opacity: 0, duration: 800, ease: "inOut(1.68)" });
   });
-
-  document.body.addEventListener("scroll", refreshBounds);
 }
 
 /**
