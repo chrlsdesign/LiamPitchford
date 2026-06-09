@@ -148,8 +148,8 @@ function attachLinkCursor(link) {
   const refreshBounds = () => (bounds = link.getBoundingClientRect());
 
   const cursorAnim = createAnimatable(crs, {
-    x: 400,
-    y: 400,
+    x: 50,
+    y: 50,
   });
 
   link.addEventListener("mousemove", (e) => {
