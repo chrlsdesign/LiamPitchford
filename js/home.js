@@ -144,29 +144,20 @@ function attachLinkCursor(link) {
   const crs = link.querySelector(".home_flw--crs");
   if (!crs) return;
 
+  let bounds = link.getBoundingClientRect();
+  const refreshBounds = () => (bounds = link.getBoundingClientRect());
+
   const cursorAnim = createAnimatable(crs, {
     x: 400,
     y: 400,
   });
 
   link.addEventListener("mousemove", (e) => {
-    const linkRect = link.getBoundingClientRect();
-    const crsRect = crs.getBoundingClientRect();
-
-    const w = crsRect.width;
-    const h = crsRect.height;
-    const offsetX = 8;
-    const offsetY = 8;
-
-    const x = Math.min(
-      Math.max(e.clientX - linkRect.left - offsetX, 0),
-      Math.max(0, linkRect.width - w),
-    );
-    const y = Math.min(
-      Math.max(e.clientY - linkRect.top - offsetY, 0),
-      Math.max(0, linkRect.height - h),
-    );
-
+    const { width, height, left, top } = bounds;
+    const hw = width / 2;
+    const hh = height / 2;
+    const x = utils.clamp(e.clientX - left - hw, -hw, hw);
+    const y = utils.clamp(e.clientY - top - hh, -hh, hh);
     cursorAnim.x(x).y(y);
   });
 
@@ -177,6 +168,8 @@ function attachLinkCursor(link) {
   link.addEventListener("mouseleave", () => {
     animate(crs, { opacity: 0, duration: 800, ease: "inOut(1.68)" });
   });
+
+  window.addEventListener("scroll", () => cursorAnim.refresh());
 }
 
 /**
