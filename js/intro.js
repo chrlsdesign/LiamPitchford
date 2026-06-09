@@ -4,6 +4,7 @@ import {
   createTimeline,
   cubicBezier,
   utils,
+  waapi,
 } from "animejs";
 
 const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
@@ -64,31 +65,26 @@ export function playHomeIntro({ isHome = false } = {}) {
       defaults: { duration: 700, ease: cubicEase },
     });
 
-    tl.add(
-      ".intro_title",
-      {
-        translateX: (el, i) => (i === 0 ? ["100%", "0%"] : ["-100%", "0%"]),
-        duration: 500,
-        delay: 250,
-      },
-      0,
-    ).add(
-      ".intro_center",
-      {
-        translateX: (el, i) => {
-          const rect = el.getBoundingClientRect();
-          const padding =
-            parseFloat(getComputedStyle(document.documentElement).fontSize) *
-            1.25;
+    const introTitle = waapi.animate(".intro_title", {
+      translateX: (el, i) => (i === 0 ? ["100%", "0%"] : ["-100%", "0%"]),
+      duration: 500,
+      delay: 250,
+    });
+    const introCenter = waapi.animate(".intro_center", {
+      translateX: (el, i) => {
+        const rect = el.getBoundingClientRect();
+        const padding =
+          parseFloat(getComputedStyle(document.documentElement).fontSize) *
+          1.25;
 
-          if (i === 0) {
-            return -(rect.left - padding);
-          }
-          return window.innerWidth - rect.right - padding;
-        },
+        if (i === 0) {
+          return -(rect.left - padding);
+        }
+        return window.innerWidth - rect.right - padding;
       },
-      750,
-    );
+    });
+
+    tl.sync(introTitle, 0).sync(introCenter, 750);
 
     tl.then(() => {
       const ac = new AbortController();
