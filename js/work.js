@@ -69,9 +69,11 @@ function showWorkThumbsStatic(workItems) {
 }
 
 function setupWorkHover(workItems) {
+  const items = Array.from(workItems);
   let activeItem = null;
+  const cleanups = [];
 
-  const cleanups = workItems.map((item) => {
+  for (const item of items) {
     const onOver = () => {
       if (item.classList.contains("off")) return;
       if (item === activeItem) return;
@@ -98,7 +100,7 @@ function setupWorkHover(workItems) {
           "<",
         );
       } else {
-        workItems.forEach((wi) => {
+        items.forEach((wi) => {
           if (wi === item || wi.classList.contains("off")) return;
           animate(wi.querySelector(".work_title"), {
             opacity: 0.4,
@@ -133,8 +135,8 @@ function setupWorkHover(workItems) {
     };
 
     item.addEventListener("mouseover", onOver);
-    return () => item.removeEventListener("mouseover", onOver);
-  });
+    cleanups.push(() => item.removeEventListener("mouseover", onOver));
+  }
 
   return () => cleanups.forEach((cleanup) => cleanup());
 }
@@ -163,10 +165,12 @@ export function initWork({
     updateIntroForPage(pageKey).then(() => runWorkPageIntro(blocks));
   }
 
-  const workItems = content.querySelectorAll(".work_item");
-  resetWorkHoverState(workItems);
-
   workScope.add((scope) => {
+    const workItems = Array.from(
+      scope.root.querySelectorAll(".work_item"),
+    );
+    if (!workItems.length) return;
+
     if (scope.matches.desktop) {
       resetWorkHoverState(workItems);
       return setupWorkHover(workItems);
