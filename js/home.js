@@ -153,7 +153,7 @@ function attachLinkCursor(link) {
   });
 
   link.addEventListener("mousemove", (e) => {
-    const { width, height, left, top } = bounds;
+    const { width, height, left, top } = link.getBoundingClientRect();
     const hw = width / 2;
     const hh = height / 2;
     const x = utils.clamp(e.clientX - left - hw, -hw, hw);
