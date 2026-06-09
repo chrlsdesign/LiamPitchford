@@ -169,7 +169,7 @@ function attachLinkCursor(link) {
     animate(crs, { opacity: 0, duration: 800, ease: "inOut(1.68)" });
   });
 
-  window.addEventListener("scroll", () => cursorAnim.refresh());
+  window.addEventListener("scroll", refreshBounds);
 }
 
 /**
