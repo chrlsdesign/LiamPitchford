@@ -152,7 +152,7 @@ function attachLinkCursor(link) {
     y: 400,
   });
 
-  link.addEventListener("mousemove", (e) => {
+  window.addEventListener("mousemove", (e) => {
     const { width, height, left, top } = bounds;
     const hw = width / 2;
     const hh = height / 2;
