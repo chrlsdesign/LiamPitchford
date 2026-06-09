@@ -26,12 +26,30 @@ const HOME_ITEM_BLUR_START = "blur(20px)";
 const HOME_ITEM_BLUR_END = "blur(0px)";
 const HOME_LIST_MODAL_BLUR = "blur(12px)";
 
+function syncVisibleHomeVideos() {
+  const wrap = document.querySelector(".home_content--wrap");
+  if (!wrap) return;
+
+  const vh = window.innerHeight;
+  const vw = window.innerWidth;
+
+  wrap.querySelectorAll("video").forEach((video) => {
+    const r = video.getBoundingClientRect();
+    const visible =
+      r.bottom > 0 && r.top < vh && r.right > 0 && r.left < vw;
+    if (visible) video.play().catch(() => {});
+    else video.pause();
+  });
+}
+
 function lockModalScroll() {
   if (infiniteStrip) infiniteStrip.stop();
+  pauseHomeVideos();
 }
 
 function unlockModalScroll() {
   if (infiniteStrip) infiniteStrip.start();
+  syncVisibleHomeVideos();
 }
 
 /**
@@ -142,6 +160,54 @@ function initScrollReveal(cubicEase) {
   scrollObservers.push({ revert: () => io.disconnect() });
 }
 
+function pauseHomeVideos() {
+  const wrap = document.querySelector(".home_content--wrap");
+  wrap?.querySelectorAll("video").forEach((video) => {
+    video.pause();
+    video.playsInline = true;
+  });
+}
+
+/**
+ * Pause strip videos by default; play only while visible in the viewport.
+ * Uses IO (not onScroll) — same reason as `initScrollReveal`: the wrap is
+ * transformed, so window scroll observers never see movement.
+ */
+function initHomeVideoPlayback() {
+  const wrap = document.querySelector(".home_content--wrap");
+  if (!wrap) return;
+
+  const videos = wrap.querySelectorAll("video");
+  if (!videos.length) return;
+
+  videos.forEach((video) => {
+    video.pause();
+    video.playsInline = true;
+  });
+
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        const video = entry.target;
+        if (entry.isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      }
+    },
+    { threshold: 0.1 },
+  );
+
+  videos.forEach((video) => io.observe(video));
+  scrollObservers.push({
+    revert: () => {
+      io.disconnect();
+      videos.forEach((video) => video.pause());
+    },
+  });
+}
+
 function attachLinkCursor(link) {
   const crs = link.querySelector(".home_flw--crs");
   if (!crs) return () => {};
@@ -224,6 +290,8 @@ function insertStripClones() {
     const group = [item, beforeItems[i], afterItems[i]].filter(Boolean);
     group.forEach((el) => itemGroups.set(el, group));
   });
+
+  pauseHomeVideos();
 }
 
 function startInfiniteStrip() {
@@ -425,6 +493,7 @@ export function initHome({
 } = {}) {
   homeScope?.revert();
   homeScope = createPageScope(content);
+  pauseHomeVideos();
 
   const hasSharedIntro = !!document.querySelector(".intro");
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
@@ -457,6 +526,7 @@ export function initHome({
     }
 
     startInfiniteStrip();
+    initHomeVideoPlayback();
     animate(".home_list.is-clone", { opacity: 1, duration: 0 });
 
     // Flower animates immediately; content reveal waits for the intro lead
@@ -477,6 +547,7 @@ export function initHome({
       .then(() => updateIntroForPage(pageKey))
       .then(() => {
         startInfiniteStrip();
+        initHomeVideoPlayback();
         initScrollReveal(cubicEase);
       });
   }
