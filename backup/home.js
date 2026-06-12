@@ -15,8 +15,8 @@ import { createPageScope } from "./scope.js";
 
 let scrollObservers = [];
 const played = new Set();
-/** Maps every `.home_item` (original + clone) to its 2-copy group, so a
- * reveal on either copy marks the other as played (no re-animation on loop). */
+/** Maps every `.home_item` (original + both clones) to its 3-copy group, so a
+ * reveal on any copy marks the other two as played (no re-animation on loop). */
 const itemGroups = new WeakMap();
 let destroyGalleryZoom = null;
 let infiniteStrip = null;
@@ -116,7 +116,7 @@ function setHomeItemsBlurred(items) {
  * IntersectionObserver-based reveal. `onScroll` from anime.js can't see the
  * strip because the window never scrolls — the wrap is transformed instead —
  * so we watch real screen bounds, which update naturally with transforms.
- * All items across the original list and the clone are observed so each
+ * All items across the original list and both clones are observed so each
  * instance reveals independently when it enters the viewport.
  */
 function initScrollReveal(cubicEase) {
@@ -171,11 +171,9 @@ function pauseHomeVideos() {
     video.pause();
     video.playsInline = true;
     // Playback is owned exclusively by the IO in `initHomeVideoPlayback`.
-    // `preload="none"` means no fetch/decode happens at all until a video is
-    // actually about to enter the viewport (play() triggers the load) — so
-    // only the handful of visible videos ever hold a decoder, instead of
-    // every copy of every video warming one up during the intro.
-    video.preload = "none";
+    // Without this, the browser fetches/decodes all 3 copies (original +
+    // 2 clones) of every video up front — a big chunk of the intro lag.
+    video.preload = "metadata";
     video.removeAttribute("autoplay");
   });
 }
@@ -266,63 +264,10 @@ function setupDesktopLinkCursors() {
 }
 
 /**
- * Render-skip clone items that are off-screen. `content-visibility: auto`
- * makes the browser skip layout/paint/raster for items outside the viewport
- * (it accounts for the strip's transform), so the clone copy costs ~nothing
- * until its items actually scroll into view. Originals are NOT skipped — they
- * stay fully rendered so their measured heights can feed the clone
- * placeholders (see `syncCloneIntrinsicSizes`).
- */
-const STRIP_CLONE_CSS = `
-  .home_list.is-clone .home_item {
-    content-visibility: auto;
-    contain-intrinsic-size: auto 480px;
-  }
-`;
-
-function injectStripCloneStyles() {
-  if (document.querySelector("style[data-strip-clone-styles]")) return;
-  const style = document.createElement("style");
-  style.setAttribute("data-strip-clone-styles", "");
-  style.textContent = STRIP_CLONE_CSS;
-  document.head.appendChild(style);
-}
-
-/**
- * Copy each original item's real height onto its clone twin as
- * `contain-intrinsic-size`, so skipped clone items occupy their exact final
- * size. Same width → same height, which means the strip's total height never
- * shifts when a clone item renders in — no layout jumps at the loop seam.
- */
-function syncCloneIntrinsicSizes() {
-  const origItems = document.querySelectorAll(
-    ".home_list:not(.is-clone) .home_item",
-  );
-  const cloneItems = document.querySelectorAll(
-    ".home_list.is-clone .home_item",
-  );
-  if (!cloneItems.length) return;
-
-  origItems.forEach((item, i) => {
-    const cloneItem = cloneItems[i];
-    if (!cloneItem) return;
-    const h = item.offsetHeight;
-    if (h > 0) {
-      cloneItem.style.containIntrinsicSize = `auto ${h}px`;
-    }
-  });
-}
-
-/**
- * Clone the original `.home_list` ONCE (appended after the original) and pair
- * items by index. A single clone is enough for the infinite loop: the strip is
- * `[original=h][clone=h]` and the engine wraps currentY within [-h, 0], so the
- * viewport is always covered as long as the list is taller than the viewport.
- * Halving the duplicated DOM (vs the old before+after clones) cuts node count,
- * image/video decode pressure, and paint cost by a third.
- * Safe to call multiple times — only runs if the clone doesn't already exist.
- * Must run before `startInfiniteStrip` (and can run before the intro dismiss
- * so the intro timeline can target `.home_list.is-clone`).
+ * Clone the original `.home_list` once (before + after) and pair items by
+ * index. Safe to call multiple times — only runs if clones don't already
+ * exist. Must run before `startInfiniteStrip` (and can run before the intro
+ * dismiss so the intro timeline can target `.home_list.is-clone`).
  */
 function insertStripClones() {
   const wrap = document.querySelector(".home_content--wrap");
@@ -330,25 +275,31 @@ function insertStripClones() {
   if (!wrap || !origList) return;
   if (wrap.querySelector(".home_list.is-clone")) return;
 
-  const clone = origList.cloneNode(true);
-  clone.setAttribute("aria-hidden", "true");
-  clone.classList.add("is-clone");
-  // `cloneNode(true)` copies the blurred inline `filter` from each original
-  // item (set in `setHomeItemsBlurred`), so clone items start blurred and
-  // reveal on their own as they scroll into view.
-  wrap.appendChild(clone);
+  const makeClone = () => {
+    const c = origList.cloneNode(true);
+    c.setAttribute("aria-hidden", "true");
+    c.classList.add("is-clone");
+    // `cloneNode(true)` copies the blurred inline `filter` from each original
+    // item (set in `setHomeItemsBlurred`), so clones start blurred and reveal
+    // on their own as they scroll into view.
+    return c;
+  };
 
-  // Pair each item with its clone by index so the reveal observer can treat
-  // both copies as one — revealing either copy marks the other played.
+  const before = makeClone();
+  const after = makeClone();
+  wrap.insertBefore(before, origList);
+  wrap.appendChild(after);
+
+  // Pair each item with its clones by index so the reveal observer can treat
+  // all three copies as one — revealing any copy marks the others played.
   const origItems = [...origList.querySelectorAll(".home_item")];
-  const cloneItems = [...clone.querySelectorAll(".home_item")];
+  const beforeItems = [...before.querySelectorAll(".home_item")];
+  const afterItems = [...after.querySelectorAll(".home_item")];
   origItems.forEach((item, i) => {
-    const group = [item, cloneItems[i]].filter(Boolean);
+    const group = [item, beforeItems[i], afterItems[i]].filter(Boolean);
     group.forEach((el) => itemGroups.set(el, group));
   });
 
-  injectStripCloneStyles();
-  syncCloneIntrinsicSizes();
   pauseHomeVideos();
 }
 
@@ -358,10 +309,11 @@ function startInfiniteStrip() {
   const origList = document.querySelector(".home_list:not(.is-clone)");
   if (!wrap || !origList) return;
 
-  // Make sure the clone is in place (no-op if `insertStripClones` already ran).
+  // Make sure clones are in place (no-op if `insertStripClones` already ran).
   insertStripClones();
 
-  const clone = wrap.querySelector(".home_list.is-clone");
+  const before = wrap.querySelectorAll(".home_list.is-clone")[0];
+  const after = wrap.querySelectorAll(".home_list.is-clone")[1];
 
   origList.style.transform = "";
   wrap.style.willChange = "transform";
@@ -381,16 +333,18 @@ function startInfiniteStrip() {
   const WHEEL_SPEED = 0.8;
   const TOUCH_SPEED = 1.0;
 
-  // Strip layout is now `[original][clone]`, so the resting position is y: 0
-  // (original at the top). Set it synchronously: the critical CSS in <head>
-  // parks `.home_content--wrap` at translateY(100vh), and this write is what
-  // overrides it — without it the strip would stay off-screen.
-  wrap.style.transform = "translate3d(0, 0, 0)";
-
+  // Park the wrap on the original list synchronously, before returning. This
+  // forces a single layout (offsetHeight) but guarantees the very first paint
+  // after page swap shows `origList` instead of `beforeClone`. Without this
+  // the rAF below sets the transform on the next frame, leaving one painted
+  // frame where the strip looks "scrolled" (the before-clone is at y: 0).
   const initH = origList.offsetHeight;
+  if (initH > 0) {
+    wrap.style.transform = `translate3d(0, ${-initH}px, 0)`;
+  }
 
-  let currentY = 0;
-  let targetY = 0;
+  let currentY = -initH;
+  let targetY = -initH;
   let velocity = 0;
   // Only mark initialized if the height read produced a real value. Otherwise
   // let the rAF safety net below pick up the real height on the next frame.
@@ -406,12 +360,10 @@ function startInfiniteStrip() {
 
   // Cache the list height — reading `offsetHeight` inside the rAF loop forces
   // a layout every frame. The height only changes on resize/content load, so
-  // a ResizeObserver keeps the cache fresh instead. Clone placeholder sizes
-  // are re-synced at the same time (they depend on original item heights).
+  // a ResizeObserver keeps the cache fresh instead.
   let cachedH = initH;
   const ro = new ResizeObserver(() => {
     cachedH = origList.offsetHeight;
-    syncCloneIntrinsicSizes();
   });
   ro.observe(origList);
 
@@ -420,10 +372,11 @@ function startInfiniteStrip() {
     if (!running) return;
 
     // Safety net: if `offsetHeight` was 0 at setup time (e.g. wrap was
-    // hidden), pick up the real height as soon as it's available. The resting
-    // position is y: 0 regardless of height, so only the cache needs fixing.
+    // hidden), pick up the real height as soon as it's available.
     if (!initialized) {
       cachedH = origList.offsetHeight;
+      currentY = -cachedH;
+      targetY = -cachedH;
       initialized = cachedH > 0;
     }
 
@@ -464,14 +417,14 @@ function startInfiniteStrip() {
       currentY += (targetY - currentY) * FRICTION;
 
       const h = cachedH;
-      // Strip layout: [original=h][clone=h] — keep currentY within [-h, 0].
-      // Teleport DOWN: scrolled past the original into the clone → wrap back.
-      if (h > 0 && currentY < -h) {
+      // Strip layout: [beforeClone=h][original=h][afterClone=h]
+      // Teleport DOWN: user scrolled past originals into `after` → wrap to top.
+      if (currentY < -(2 * h)) {
         currentY += h;
         targetY += h;
       }
-      // Teleport UP: scrolled above the original → wrap forward into the clone.
-      if (h > 0 && currentY > 0) {
+      // Teleport UP: user scrolled past originals into `before` → wrap to bottom.
+      if (currentY > 0) {
         currentY -= h;
         targetY -= h;
       }
@@ -539,7 +492,7 @@ function startInfiniteStrip() {
   infiniteStrip = {
     wrap,
     origList,
-    clones: [clone],
+    clones: [before, after],
     start() {
       paused = false;
     },
@@ -553,7 +506,8 @@ function startInfiniteStrip() {
       if (rafId) cancelAnimationFrame(rafId);
       ro.disconnect();
       ac.abort();
-      clone?.remove();
+      before.remove();
+      after.remove();
       wrap.style.transform = "";
       wrap.style.willChange = "";
     },
@@ -596,7 +550,7 @@ export function initHome({
     if (homeWrap) animate(homeWrap, { y: 0, duration: 0 });
     animate(".main", { opacity: 1, pointerEvents: "auto", duration: 0 });
 
-    // Get the strip's clone in place and the wrap parked at y: 0 synchronously
+    // Get the strip's clones in place and the wrap parked at -h synchronously
     // so the page is laid out correctly even while it's masked by opacity:0.
     const wrap = document.querySelector(".home_content--wrap");
     if (wrap) {

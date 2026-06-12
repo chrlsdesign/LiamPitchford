@@ -106,10 +106,6 @@ class DefaultRenderer extends Renderer {
 
   onEnter() {
     this.content.querySelectorAll("video[autoplay]").forEach((video) => {
-      // Home strip videos are play/paused by an IntersectionObserver in
-      // home.js — kicking them all off here causes a decode burst of every
-      // copy of every video right in the middle of the page transition.
-      if (video.closest(".home_content--wrap")) return;
       video.play().catch(() => {});
     });
 
