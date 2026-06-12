@@ -106,6 +106,10 @@ export function playHomeIntro({ isHome = false } = {}) {
           y: { duration: 600, ease: "out(3)" },
         });
 
+        // The fade-in only needs to happen once — creating a new animation
+        // object on every mousemove is pure allocation churn.
+        let interRevealed = false;
+
         const onMove = (e) => {
           const rect = svg.getBoundingClientRect();
           const vb = svg.viewBox.baseVal;
@@ -116,7 +120,10 @@ export function playHomeIntro({ isHome = false } = {}) {
           const x = (e.clientX - rect.left) * scaleX - inter.offsetWidth / 2;
           const y = (e.clientY - rect.top) * scaleY - inter.offsetHeight / 2;
 
-          animate(inter, { opacity: 1, duration: 250 });
+          if (!interRevealed) {
+            interRevealed = true;
+            animate(inter, { opacity: 1, duration: 250 });
+          }
           animatable.x(x);
           animatable.y(y);
         };

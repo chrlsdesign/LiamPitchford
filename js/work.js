@@ -24,7 +24,7 @@ function collectWorkWordSplits(container) {
 
 function setWorkWordsHidden(blocks) {
   blocks.forEach(({ split }) => {
-    animate(split.words, { y: "100%", duration: 0 });
+    utils.set(split.words, { y: "100%" });
   });
 }
 
@@ -63,7 +63,8 @@ function showWorkThumbsStatic(workItems) {
     if (link) link.style.display = "flex";
     item.querySelectorAll(".work_thumb").forEach((thumb) => {
       thumb.style.opacity = "1";
-      thumb.style.filter = "blur(0px)";
+      // Clear rather than blur(0px) — a no-op blur still costs at paint time.
+      thumb.style.filter = "";
     });
   });
 }
@@ -120,13 +121,17 @@ function setupWorkHover(workItems) {
         display: "flex",
         duration: 0,
       });
+      const thumbs = item.querySelectorAll(".work_thumb");
       animate(
-        item.querySelectorAll(".work_thumb"),
+        thumbs,
         {
           opacity: 1,
           filter: ["blur(20px)", "blur(0px)"],
           duration: 300,
           ease: "outQuad",
+          onComplete: () => {
+            thumbs.forEach((thumb) => (thumb.style.filter = ""));
+          },
         },
         "<",
       );

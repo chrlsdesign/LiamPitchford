@@ -108,7 +108,7 @@ function getHomeListItems() {
 
 function setHomeItemsBlurred(items) {
   items.forEach((item) => {
-    animate(item, { filter: HOME_ITEM_BLUR_START, duration: 0 });
+    utils.set(item, { filter: HOME_ITEM_BLUR_START });
   });
 }
 
@@ -141,14 +141,19 @@ function initScrollReveal(cubicEase) {
           io.unobserve(el);
           // Only the intersecting copy animates; the off-screen siblings jump
           // straight to the cleared state so the user never sees them re-reveal.
+          // Filter is cleared (not left at blur(0px)) once done — a no-op blur
+          // still keeps the element on the expensive filtered raster path.
           if (el === item) {
             animate(el, {
               filter: [HOME_ITEM_BLUR_START, HOME_ITEM_BLUR_END],
               duration: 750,
               ease: cubicEase,
+              onComplete: () => {
+                el.style.filter = "";
+              },
             });
           } else {
-            el.style.filter = HOME_ITEM_BLUR_END;
+            el.style.filter = "";
           }
         });
       }
@@ -165,6 +170,11 @@ function pauseHomeVideos() {
   wrap?.querySelectorAll("video").forEach((video) => {
     video.pause();
     video.playsInline = true;
+    // Playback is owned exclusively by the IO in `initHomeVideoPlayback`.
+    // Without this, the browser fetches/decodes all 3 copies (original +
+    // 2 clones) of every video up front — a big chunk of the intro lag.
+    video.preload = "metadata";
+    video.removeAttribute("autoplay");
   });
 }
 
@@ -180,10 +190,7 @@ function initHomeVideoPlayback() {
   const videos = wrap.querySelectorAll("video");
   if (!videos.length) return;
 
-  videos.forEach((video) => {
-    video.pause();
-    video.playsInline = true;
-  });
+  pauseHomeVideos();
 
   const io = new IntersectionObserver(
     (entries) => {
@@ -196,7 +203,9 @@ function initHomeVideoPlayback() {
         }
       }
     },
-    { threshold: 0.1 },
+    // rootMargin pre-rolls playback slightly before entry so the play()
+    // spin-up isn't visible during fast flings.
+    { threshold: 0.1, rootMargin: "25%" },
   );
 
   videos.forEach((video) => io.observe(video));
@@ -349,7 +358,14 @@ function startInfiniteStrip() {
   let touchVel = 0;
   let touchLastT = 0;
 
-  const getOrigH = () => origList.offsetHeight;
+  // Cache the list height — reading `offsetHeight` inside the rAF loop forces
+  // a layout every frame. The height only changes on resize/content load, so
+  // a ResizeObserver keeps the cache fresh instead.
+  let cachedH = initH;
+  const ro = new ResizeObserver(() => {
+    cachedH = origList.offsetHeight;
+  });
+  ro.observe(origList);
 
   let rafId = 0;
   const tick = () => {
@@ -358,10 +374,10 @@ function startInfiniteStrip() {
     // Safety net: if `offsetHeight` was 0 at setup time (e.g. wrap was
     // hidden), pick up the real height as soon as it's available.
     if (!initialized) {
-      const h = getOrigH();
-      currentY = -h;
-      targetY = -h;
-      initialized = true;
+      cachedH = origList.offsetHeight;
+      currentY = -cachedH;
+      targetY = -cachedH;
+      initialized = cachedH > 0;
     }
 
     if (!paused) {
@@ -382,9 +398,25 @@ function startInfiniteStrip() {
         velocity *= MOMENTUM;
         if (Math.abs(velocity) < 0.01) velocity = 0;
       }
+
+      // Idle short-circuit: at rest there's nothing to animate — skip the
+      // easing math and (crucially) the transform write so the compositor
+      // isn't fed redundant updates every frame while the strip sits still.
+      const settled =
+        !touching && velocity === 0 && Math.abs(targetY - currentY) < 0.1;
+
+      if (settled) {
+        if (currentY !== targetY) {
+          currentY = targetY;
+          wrap.style.transform = `translate3d(0, ${Math.round(currentY)}px, 0)`;
+        }
+        rafId = requestAnimationFrame(tick);
+        return;
+      }
+
       currentY += (targetY - currentY) * FRICTION;
 
-      const h = getOrigH();
+      const h = cachedH;
       // Strip layout: [beforeClone=h][original=h][afterClone=h]
       // Teleport DOWN: user scrolled past originals into `after` → wrap to top.
       if (currentY < -(2 * h)) {
@@ -396,9 +428,10 @@ function startInfiniteStrip() {
         currentY -= h;
         targetY -= h;
       }
+
+      wrap.style.transform = `translate3d(0, ${Math.round(currentY)}px, 0)`;
     }
 
-    wrap.style.transform = `translate3d(0, ${Math.round(currentY)}px, 0)`;
     rafId = requestAnimationFrame(tick);
   };
   rafId = requestAnimationFrame(tick);
@@ -471,6 +504,7 @@ function startInfiniteStrip() {
     destroy() {
       running = false;
       if (rafId) cancelAnimationFrame(rafId);
+      ro.disconnect();
       ac.abort();
       before.remove();
       after.remove();
@@ -493,7 +527,6 @@ export function initHome({
 } = {}) {
   homeScope?.revert();
   homeScope = createPageScope(content);
-  pauseHomeVideos();
 
   const hasSharedIntro = !!document.querySelector(".intro");
   const cubicEase = cubicBezier(0.67, 0, 0.27, 1);
@@ -538,6 +571,9 @@ export function initHome({
           filter: [HOME_ITEM_BLUR_START, HOME_ITEM_BLUR_END],
           duration: 600,
           ease: cubicEase,
+          onComplete: () => {
+            wrap.style.filter = "";
+          },
         });
       }
       initScrollReveal(cubicEase);
@@ -595,7 +631,10 @@ function initDialog() {
         filter: HOME_ITEM_BLUR_END,
         duration,
         ease: cubicEase,
-        onComplete: () => unlockModalScroll(),
+        onComplete: () => {
+          homeList.style.filter = "";
+          unlockModalScroll();
+        },
       });
     }
     modalLayout.update(({ root }) => {
@@ -673,16 +712,8 @@ export function destroyHome() {
   document.documentElement.style.overflow = "";
   document.body.style.overflow = "";
   document.body.style.touchAction = "";
-  scrollObservers.forEach((observer) => observer.revert());
-  scrollObservers = [];
   played.clear();
-  document
-    .querySelectorAll(".home_list:not(.is-clone) .home_item")
-    .forEach((item, i) => {
-      const isOdd = i % 2 === 0;
-      item.style.clipPath = isOdd
-        ? "inset(0% 100% 100% 0%)"
-        : "inset(0% 0% 100% 100%)";
-    });
+  // `resetScrollReveal` reverts the observers and re-applies the clip-path
+  // initial state on all remaining items (clones are already removed above).
   resetScrollReveal();
 }

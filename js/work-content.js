@@ -64,6 +64,11 @@ function initMediaBlurReveal(container) {
           filter: [BLUR_START, BLUR_END],
           duration: 750,
           ease: cubicEase,
+          // Clear the no-op blur once revealed so the element leaves the
+          // filtered raster path (cheaper repaints, especially on mobile).
+          onComplete: () => {
+            el.style.filter = "";
+          },
         });
       },
       onEnterBackward: () => {
@@ -73,6 +78,9 @@ function initMediaBlurReveal(container) {
           filter: [BLUR_START, BLUR_END],
           duration: 750,
           ease: cubicEase,
+          onComplete: () => {
+            el.style.filter = "";
+          },
         });
       },
     });
@@ -94,7 +102,12 @@ const MEDIA_SKIN_CSS = `
 `;
 
 function injectMediaSkinStyles(container) {
-  const root = container && container.querySelectorAll ? container : document;
+  // Scope the shadow-root scan as tightly as possible — `querySelectorAll("*")`
+  // on the whole document is expensive on long project pages.
+  const root =
+    (container && container.querySelectorAll ? container : null) ||
+    document.querySelector(".main") ||
+    document;
   root.querySelectorAll("*").forEach((el) => {
     if (
       el.shadowRoot &&
@@ -149,5 +162,13 @@ export function initWorkContent({
     }
   });
 
-  setTimeout(() => injectMediaSkinStyles(content), 1000);
+  // Defer the shadow-root style injection to idle time; the 1s timeout keeps
+  // the previous worst-case latency as the fallback deadline.
+  if ("requestIdleCallback" in window) {
+    requestIdleCallback(() => injectMediaSkinStyles(content), {
+      timeout: 1000,
+    });
+  } else {
+    setTimeout(() => injectMediaSkinStyles(content), 1000);
+  }
 }
