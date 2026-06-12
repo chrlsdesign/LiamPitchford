@@ -268,10 +268,12 @@ function setupDesktopLinkCursors() {
 /**
  * Render-skip clone items that are off-screen. `content-visibility: auto`
  * makes the browser skip layout/paint/raster for items outside the viewport
- * (it accounts for the strip's transform), so the clone copy costs ~nothing
- * until its items actually scroll into view. Originals are NOT skipped — they
- * stay fully rendered so their measured heights can feed the clone
- * placeholders (see `syncCloneIntrinsicSizes`).
+ * (it accounts for the strip's transform), so the clone copy costs ~nothing.
+ * The first viewport-worth of clone items is exempted via an inline override
+ * in `syncCloneIntrinsicSizes` — they're the teleport landing zone and must
+ * be pre-painted to avoid a flash at the loop seam. Originals are NOT skipped
+ * — they stay fully rendered so their measured heights can feed the clone
+ * placeholders.
  */
 const STRIP_CLONE_CSS = `
   .home_list.is-clone .home_item {
@@ -293,6 +295,14 @@ function injectStripCloneStyles() {
  * `contain-intrinsic-size`, so skipped clone items occupy their exact final
  * size. Same width → same height, which means the strip's total height never
  * shifts when a clone item renders in — no layout jumps at the loop seam.
+ *
+ * Seam pre-render: the engine keeps currentY within [-h, 0], so the only part
+ * of the clone that can EVER appear on screen is its first viewport-height
+ * (shown right after the up-teleport and when scrolling down across the
+ * seam). Those items are forced to `content-visibility: visible` so they're
+ * already painted the instant the teleport lands on them — render-skipping
+ * them is what caused the flicker when scrolling up past the loop point.
+ * Deeper clone items are never visible at all and stay fully skipped.
  */
 function syncCloneIntrinsicSizes() {
   const origItems = document.querySelectorAll(
@@ -303,6 +313,10 @@ function syncCloneIntrinsicSizes() {
   );
   if (!cloneItems.length) return;
 
+  // 1.5x viewport of headroom so fast flings can't outrun the painted region.
+  const preRenderBudget = window.innerHeight * 1.5;
+  let cumulative = 0;
+
   origItems.forEach((item, i) => {
     const cloneItem = cloneItems[i];
     if (!cloneItem) return;
@@ -310,6 +324,9 @@ function syncCloneIntrinsicSizes() {
     if (h > 0) {
       cloneItem.style.containIntrinsicSize = `auto ${h}px`;
     }
+    cloneItem.style.contentVisibility =
+      cumulative < preRenderBudget ? "visible" : "";
+    cumulative += h;
   });
 }
 
@@ -391,6 +408,7 @@ function startInfiniteStrip() {
 
   let currentY = 0;
   let targetY = 0;
+  let lastWrittenY = 0;
   let velocity = 0;
   // Only mark initialized if the height read produced a real value. Otherwise
   // let the rAF safety net below pick up the real height on the next frame.
@@ -446,25 +464,23 @@ function startInfiniteStrip() {
         if (Math.abs(velocity) < 0.01) velocity = 0;
       }
 
-      // Idle short-circuit: at rest there's nothing to animate — skip the
-      // easing math and (crucially) the transform write so the compositor
+      // Idle short-circuit: at rest there's nothing to animate — snap once,
+      // then skip the easing math and transform writes so the compositor
       // isn't fed redundant updates every frame while the strip sits still.
       const settled =
         !touching && velocity === 0 && Math.abs(targetY - currentY) < 0.1;
 
       if (settled) {
-        if (currentY !== targetY) {
-          currentY = targetY;
-          wrap.style.transform = `translate3d(0, ${Math.round(currentY)}px, 0)`;
-        }
-        rafId = requestAnimationFrame(tick);
-        return;
+        currentY = targetY;
+      } else {
+        currentY += (targetY - currentY) * FRICTION;
       }
-
-      currentY += (targetY - currentY) * FRICTION;
 
       const h = cachedH;
       // Strip layout: [original=h][clone=h] — keep currentY within [-h, 0].
+      // The wrap MUST run on every path that can move currentY (including the
+      // settled snap above) or the strip can park outside the covered range
+      // and show blank space above the original.
       // Teleport DOWN: scrolled past the original into the clone → wrap back.
       if (h > 0 && currentY < -h) {
         currentY += h;
@@ -476,7 +492,12 @@ function startInfiniteStrip() {
         targetY -= h;
       }
 
-      wrap.style.transform = `translate3d(0, ${Math.round(currentY)}px, 0)`;
+      // Only touch the DOM when the rounded position actually changed.
+      const rounded = Math.round(currentY);
+      if (rounded !== lastWrittenY) {
+        lastWrittenY = rounded;
+        wrap.style.transform = `translate3d(0, ${rounded}px, 0)`;
+      }
     }
 
     rafId = requestAnimationFrame(tick);
